@@ -2,10 +2,21 @@
 
 CC = gcc
 SRCDIR = ./source
-INCLUDE = C:\msys64\mingw64\include\SDL2
-CFLAGS = -g -I$(INCLUDE) -c
-LDFLAGS = -lmingw32 -lSDL2main -lSDL2_image -lSDL2 -mwindows
+
+### Nedan är kod för Windows
+#INCLUDE = C:\msys64\mingw64\include\SDL2
+#CFLAGS = -g -I$(INCLUDE) -c
+#LDFLAGS = -lmingw32 -lSDL2main -lSDL2_image -lSDL2 -mwindows
+#EXECUTABLE = triangle_sim
+
+
+### Nedan är kod för MacOs
+INCLUDE = /opt/homebrew/include
+LIBDIR = /opt/homebrew/lib
+CFLAGS = -g -I$(INCLUDE) -D_THREAD_SAFE -c
+LDFLAGS = -L$(LIBDIR) -lSDL2main -lSDL2_image -lSDL2
 EXECUTABLE = triangle_sim
+
 
 vpath %.h $(SRCDIR)
 vpath %.c $(SRCDIR)

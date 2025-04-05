@@ -1,20 +1,42 @@
 #include "GameModel.h"
+#include <SDL2/SDL.h>
+#include "GameView.h"
 
-void initializeModel(struct GameModel* model) {
-    // Placera spelarna i två trianglar
-    model->players[0] = (Player){300, 200};
-    model->players[1] = (Player){400, 100};
-    model->players[2] = (Player){500, 200};
+void cleanupModel(struct GameModel* model) {
+    if (model->coachTexture) {
+        SDL_DestroyTexture(model->coachTexture);
+        model->coachTexture = NULL;
+    }
+}
 
-    model->players[3] = (Player){300, 400};
-    model->players[4] = (Player){400, 500};
-    model->players[5] = (Player){500, 400};
+void initializeModel(struct GameModel* model, SDL_Renderer* renderer) {
+    model->grass.x = 150;
+    model->grass.y = 150;
+    model->grass.width = 500;
+    model->grass.height = 300;
+    model->grass.texture = NULL;
 
-    // Startposition för tränaren
-    model->coach = (Player){400, 300};
+    int offsetX = 60; 
+    int offsetY = 60; 
 
-    // Passningssekvens
-    int order[PLAYER_COUNT] = {0, 4, 1, 5, 2, 3};
+    Uint32 startTime = SDL_GetTicks();
+
+    model->players[0] = (Player){ model->grass.x - offsetX, model->grass.y, 0, startTime, IDLE };
+    model->players[1] = (Player){ model->grass.x + model->grass.width + offsetX, model->grass.y, 0, startTime, IDLE };
+    model->players[2] = (Player){ model->grass.x - offsetX, model->grass.y + model->grass.height, 0, startTime, IDLE };
+    model->players[3] = (Player){ model->grass.x + model->grass.width + offsetX, model->grass.y + model->grass.height, 0, startTime, IDLE };
+    model->players[4] = (Player){ model->grass.x + model->grass.width / 2, model->grass.y - offsetY, 0, startTime, IDLE };
+    model->players[5] = (Player){ model->grass.x + model->grass.width / 2, model->grass.y + model->grass.height + offsetY, 0, startTime, IDLE };
+
+    model->coach = (Player){
+        model->grass.x + model->grass.width / 2,
+        model->grass.y + model->grass.height / 2,
+        0, startTime, IDLE
+    };
+
+    model->coachTexture = loadTexture(renderer, "resources/Coach.png");
+
+    int order[PLAYER_COUNT] = {4, 1, 3, 5, 2, 0}; 
     for (int i = 0; i < PLAYER_COUNT; i++) {
         model->passOrder[i] = order[i];
     }

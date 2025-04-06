@@ -1,6 +1,9 @@
 #include "GameModel.h"
-#include <SDL2/SDL.h>
-#include "GameView.h"
+#include <math.h>
+
+const int animationFrameCounts[ANIMATION_COUNT] = {
+    4, 8, 10, 6, 8, 9
+};
 
 void cleanupModel(struct GameModel* model) {
     if (model->coachTexture) {
@@ -9,7 +12,8 @@ void cleanupModel(struct GameModel* model) {
     }
 }
 
-void initializeModel(struct GameModel* model, SDL_Renderer* renderer) {
+void initializeModel(struct GameModel* model, SDL_Texture* coachTexture)
+ {
     model->grass.x = 150;
     model->grass.y = 150;
     model->grass.width = 500;
@@ -34,7 +38,7 @@ void initializeModel(struct GameModel* model, SDL_Renderer* renderer) {
         0, startTime, IDLE
     };
 
-    model->coachTexture = loadTexture(renderer, "resources/Coach.png");
+    model->coachTexture = coachTexture;
 
     int order[PLAYER_COUNT] = {4, 1, 3, 5, 2, 0}; 
     for (int i = 0; i < PLAYER_COUNT; i++) {
@@ -43,4 +47,31 @@ void initializeModel(struct GameModel* model, SDL_Renderer* renderer) {
 
     model->step = 0;
     model->lastPassTime = SDL_GetTicks();
+}
+
+void movePlayerTowards(Player *player, float targetX, float targetY, float speed, struct GameModel* model) {
+    float deltaX = targetX - player->x;
+    float deltaY = targetY - player->y;
+    float distance = sqrt(deltaX * deltaX + deltaY * deltaY);
+
+    if (distance > speed && distance != 0) {
+        player->x += speed * (deltaX / distance);
+        player->y += speed * (deltaY / distance);
+
+        player->angle = atan2(deltaY, deltaX) * (180.0 / M_PI);
+        if (player->angle < 0) player->angle += 360;
+
+        player->animationState = RUN;
+        Uint32 now = SDL_GetTicks();
+        if (now - player->lastFrameTime > FRAME_DELAY) {
+            int frameCount = animationFrameCounts[player->animationState];
+            player->frame = (player->frame + 1) % frameCount;
+            player->lastFrameTime = now;
+        }
+    } else {
+        player->x = targetX;
+        player->y = targetY;
+        player->animationState = IDLE;
+        player->frame = 0;
+    }
 }

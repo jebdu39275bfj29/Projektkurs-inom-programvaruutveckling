@@ -1,3 +1,4 @@
+// --- GameModel.h ---
 #ifndef GAMEMODEL_H
 #define GAMEMODEL_H
 
@@ -7,6 +8,7 @@
 #define PLAYER_SIZE 64
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
+#define FRAME_DELAY 100
 
 typedef enum {
     IDLE = 0,
@@ -17,6 +19,8 @@ typedef enum {
     SHOOT,
     ANIMATION_COUNT
 } AnimationState;
+
+extern const int animationFrameCounts[ANIMATION_COUNT];
 
 typedef struct {
     float x, y;
@@ -33,16 +37,17 @@ typedef struct {
 } Grass;
 
 typedef struct GameModel {
-    Player players[PLAYER_COUNT];  // Spelare
-    Player coach;                  // Bollen (eller coachen)
+    Player players[PLAYER_COUNT];
+    Player coach;
     SDL_Texture* coachTexture;
-    int passOrder[PLAYER_COUNT];   // Passningsordning
-    int step;                      // Aktuellt passningssteg
-    Uint32 lastPassTime;           // Tid för senaste pass
+    int passOrder[PLAYER_COUNT];
+    int step;
+    Uint32 lastPassTime;
     Grass grass;
 } GameModel;
 
 void cleanupModel(struct GameModel* model);
-void initializeModel(struct GameModel* model, SDL_Renderer* renderer);
+void initializeModel(struct GameModel* model, SDL_Texture* coachTexture);
+void movePlayerTowards(Player *player, float targetX, float targetY, float speed, struct GameModel* model);
 
 #endif

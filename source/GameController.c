@@ -2,51 +2,71 @@
 #include "GameModel.h"
 #include "GameView.h"
 #include <SDL2/SDL.h>
-#include <math.h>
+#include <SDL2/SDL_image.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 #define MOVE_SPEED 2.0f     
-#define THRESHOLD 5.0f     
-#define FRAME_DELAY 100
-#define M_PI 3.14159265358979323846
+#define THRESHOLD 5.0f  
 
-const int animationFrameCounts[ANIMATION_COUNT] = {
-    4,  
-    8,  
-    10, 
-    6,  
-    8,  
-    9   
-};
-
-void movePlayerTowards(Player *player, float targetX, float targetY, float speed, struct GameModel* model) {
-    float deltaX = targetX - player->x;
-    float deltaY = targetY - player->y;
-    float distance = sqrt(deltaX * deltaX + deltaY * deltaY);
-
-    if (distance > speed && distance != 0) {
-        player->x += speed * (deltaX / distance);
-        player->y += speed * (deltaY / distance);
-        
-        player->angle = atan2(deltaY, deltaX) * (180.0 / M_PI);
-        if (player->angle < 0) {
-        player->angle += 360; // Gör vinkel positiv om den är negativ
-    }
-
-        
-        player->animationState = RUN;
-        Uint32 now = SDL_GetTicks();
-        if (now - player->lastFrameTime > FRAME_DELAY) {
-            int frameCount = animationFrameCounts[player->animationState];
-            player->frame = (player->frame + 1) % frameCount;
-            player->lastFrameTime = now;
+static bool handleEvents() {
+    SDL_Event event;
+    while (SDL_PollEvent(&event)) {
+        if (event.type == SDL_QUIT) {
+            return false;
         }
-    } else {
-        player->x = targetX;
-        player->y = targetY;
-        player->animationState = IDLE;
-        player->frame = 0;
     }
+    return true;
+}
+
+int startGameLoop() {
+    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+        SDL_Log("SDL_Init Error: %s\n", SDL_GetError());
+        return 1;
+    }
+
+    if (!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)) {
+        SDL_Log("IMG_Init Error: %s\n", IMG_GetError());
+        SDL_Quit();
+        return 1;
+    }
+
+    SDL_Window* window = SDL_CreateWindow("Football Simulation", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT, 0);
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+
+    GameTextures textures = loadAllTextures(renderer);
+
+    if (!textures.playerTexture || !textures.grassTexture || !textures.coachTexture) {
+        SDL_DestroyRenderer(renderer);
+        SDL_DestroyWindow(window);
+        IMG_Quit();
+        SDL_Quit();
+        return -1;
+    }
+
+    GameModel model;
+    initializeModel(&model, textures.coachTexture);
+
+    bool running = true;
+
+    while (running) {
+        running = handleEvents();
+
+        updatePassingLogic(&model);
+        renderGame(renderer, textures.playerTexture, textures.grassTexture, &model);
+        SDL_Delay(16);
+    }
+
+    cleanupModel(&model);
+    SDL_DestroyTexture(textures.playerTexture);
+    SDL_DestroyTexture(textures.grassTexture);
+    SDL_DestroyTexture(textures.coachTexture);
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    IMG_Quit();
+    SDL_Quit();
+
+    return 0;
 }
 
 

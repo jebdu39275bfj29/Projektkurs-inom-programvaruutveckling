@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 // Laddar textur
-SDL_Texture* loadTexture(SDL_Renderer* renderer, const char* path) {
+static SDL_Texture* loadTexture(SDL_Renderer* renderer, const char* path) {
     SDL_Surface* surface = IMG_Load(path);
     if (!surface) {
         SDL_Log("IMG_Load Error: %s\n", IMG_GetError());
@@ -14,6 +14,14 @@ SDL_Texture* loadTexture(SDL_Renderer* renderer, const char* path) {
     SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
     return texture;
+}
+
+GameTextures loadAllTextures(SDL_Renderer* renderer) {
+    GameTextures textures = {0};
+    textures.playerTexture = loadTexture(renderer, "resources/Players.png");
+    textures.grassTexture = loadTexture(renderer, "resources/Pitch.png");
+    textures.coachTexture = loadTexture(renderer, "resources/Coach.png");
+    return textures;
 }
 
 void renderGame(SDL_Renderer* renderer, SDL_Texture* playerTexture, SDL_Texture* grassTexture, struct GameModel* model) {

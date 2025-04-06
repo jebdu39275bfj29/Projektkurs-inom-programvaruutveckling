@@ -61,15 +61,12 @@ void renderGame(SDL_Renderer* renderer, SDL_Texture* playerTexture, SDL_Texture*
 
         SDL_Point center = { PLAYER_SIZE / 2, PLAYER_SIZE / 2 };
 
-    
-        double angle = p->angle;
-        if (angle < 0) {
-            angle += 360; 
-        } else if (angle >= 360) {
-            angle -= 360;
+        SDL_RendererFlip flip = SDL_FLIP_NONE;
+        if (p->angle >= 90 && p->angle <= 270) {
+            flip = SDL_FLIP_HORIZONTAL;
         }
 
-        SDL_RenderCopyEx(renderer, playerTexture, &src, &dst, angle, &center, SDL_FLIP_NONE);
+        SDL_RenderCopyEx(renderer, playerTexture, &src, &dst, 0, &center, flip);
 
     }
 

@@ -1,2 +1,5 @@
 # Ignore macOS Makefile
 Makefile
+*.o
+triangle_sim
+.vscode/

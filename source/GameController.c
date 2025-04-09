@@ -46,6 +46,7 @@ int startGameLoop() {
 
     GameModel model;
     initializeModel(&model, textures.coachTexture);
+    model.ball.texture = textures.ballTexture;
 
     bool running = true;
 
@@ -77,8 +78,36 @@ void updatePassingLogic(struct GameModel* model) {
     float targetX = model->players[to].x;
     float targetY = model->players[to].y;
 
+    // 1) Flytta spelare "from" mot "to"
     movePlayerTowards(&model->players[from], targetX, targetY, MOVE_SPEED, model);
 
+    // 2) Placera bollen framför spelare "from"
+    float dx = model->players[from].x - model->ball.x;
+    float dy = model->players[from].y - model->ball.y;
+    float dist = sqrtf(dx*dx + dy*dy);
+
+    // T.ex. rulla bollen med hastighet proportionell mot dist
+    if (dist > 0.1f) {
+        // Rulla bollen proportionellt mot hur långt den förflyttar sig
+        float rollSpeed = 5.0f; // testvärde: justera så bollens rotation känns bra
+        model->ball.angle += rollSpeed;
+        if (model->ball.angle > 360.0f) {
+            model->ball.angle -= 360.0f;
+        }
+    }
+
+    // Här kan du lägga en offset så bollen hamnar “framför” spelaren.
+    // T.ex. 20 pixlar i rörelsens riktning
+    float offset = 20.0f;
+    float angleRad = atan2f( (targetY - model->players[from].y),
+                             (targetX - model->players[from].x) );
+    float offsetX = cosf(angleRad) * offset;
+    float offsetY = sinf(angleRad) * offset;
+
+    model->ball.x = model->players[from].x + offsetX;
+    model->ball.y = model->players[from].y + offsetY;
+
+    // 3) Kolla om passningen är “framme”
     if (fabs(model->players[from].x - targetX) < THRESHOLD &&
         fabs(model->players[from].y - targetY) < THRESHOLD) {
         model->coach.x = targetX;
@@ -86,4 +115,3 @@ void updatePassingLogic(struct GameModel* model) {
         model->step = (model->step + 1) % PLAYER_COUNT;
     }
 }
-

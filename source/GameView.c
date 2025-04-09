@@ -21,6 +21,7 @@ GameTextures loadAllTextures(SDL_Renderer* renderer) {
     textures.playerTexture = loadTexture(renderer, "resources/Players.png");
     textures.grassTexture = loadTexture(renderer, "resources/Pitch.png");
     textures.coachTexture = loadTexture(renderer, "resources/Coach.png");
+    textures.ballTexture   = loadTexture(renderer, "resources/Ball.png");
     return textures;
 }
 
@@ -92,6 +93,27 @@ void renderGame(SDL_Renderer* renderer, SDL_Texture* playerTexture, SDL_Texture*
             (int)(model->players[to].x + PLAYER_SIZE / 2),
             (int)(model->players[to].y + PLAYER_SIZE / 2)
         );
+    }
+
+    // Rita boll
+    if (model->ball.texture) {
+        SDL_Rect dst;
+        dst.x = (int)(model->ball.x);
+        dst.y = (int)(model->ball.y);
+        dst.w = model->ball.width;
+        dst.h = model->ball.height;
+
+        // Vi använder ball.angle för att rotera bollen för att simulera rullning
+        // Här roterar vi runt mittpunkten av bollens sprite
+        SDL_Point center = { dst.w / 2, dst.h / 2 };
+
+        SDL_RenderCopyEx(renderer,
+                         model->ball.texture,
+                         NULL,
+                         &dst,
+                         model->ball.angle,
+                         &center,
+                         SDL_FLIP_NONE);
     }
 
     SDL_RenderPresent(renderer);

@@ -60,7 +60,7 @@ void movePlayerTowards(Player *player, float targetX, float targetY, float speed
         player->y += speed * (deltaY / distance);
 
         player->angle = atan2(deltaY, deltaX) * (180.0 / M_PI);
-        if (player->angle < 0) player->angle += 270;
+        if (player->angle < 0) player->angle += 360;
 
         player->animationState = RUN;
         Uint32 now = SDL_GetTicks();

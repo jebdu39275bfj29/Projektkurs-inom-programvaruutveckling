@@ -72,13 +72,34 @@ void renderGame(SDL_Renderer* renderer, SDL_Texture* playerTexture, SDL_Texture*
 
     // Rita coach-bilden
     if (model->coachTexture) {
-        SDL_Rect coachRect = {
-            (int)(model->coach.x - PLAYER_SIZE / 2),
-            (int)(model->coach.y - PLAYER_SIZE / 2),
+        Player* c = &model->coach;
+        int coachFrameW = animationFrameWidths[c->animationState];  
+        int coachFrameH = frameHeights; 
+        int coachRowIndex = 2; 
+
+        SDL_Rect coachSrc = {
+            model->coach.frame * coachFrameW,      
+            coachRowIndex * coachFrameH,          
+            coachFrameW,
+            coachFrameH
+        };
+
+        SDL_Rect coachDst = {
+            (int)(model->coach.x),
+            (int)(model->coach.y),
             PLAYER_SIZE,
             PLAYER_SIZE
         };
-        SDL_RenderCopy(renderer, model->coachTexture, NULL, &coachRect);
+
+        SDL_Point center = { PLAYER_SIZE / 2, PLAYER_SIZE / 2 };
+
+        SDL_RendererFlip flip = SDL_FLIP_NONE;
+        if (c->angle >= 90 && c->angle <= 270) {
+            flip = SDL_FLIP_HORIZONTAL;
+        }
+
+        SDL_RenderCopyEx(renderer, model->coachTexture, &coachSrc, &coachDst, 0, &center, flip);
+
     }
 
     // Rita passningslinje

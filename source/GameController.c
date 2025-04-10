@@ -79,11 +79,20 @@ void updatePassingLogic(struct GameModel* model) {
 
     movePlayerTowards(&model->players[from], targetX, targetY, MOVE_SPEED, model);
 
+    float coachTargetX = targetX - 50;
+    float coachTargetY = targetY - 30;
+
+    coachTargetX = fmax(model->grass.x, fmin(coachTargetX, model->grass.x + model->grass.width));
+    coachTargetY = fmax(model->grass.y, fmin(coachTargetY, model->grass.y + model->grass.height));
+
+    movePlayerTowards(&model->coach, coachTargetX, coachTargetY, MOVE_SPEED, model);
+
     if (fabs(model->players[from].x - targetX) < THRESHOLD &&
         fabs(model->players[from].y - targetY) < THRESHOLD) {
-        model->coach.x = targetX;
-        model->coach.y = targetY;
         model->step = (model->step + 1) % PLAYER_COUNT;
     }
 }
+
+
+
 

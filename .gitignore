@@ -1,6 +1,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 # Ignore macOS Makefile
 Makefile
 *.o
@@ -19,9 +20,13 @@ triangle_sim
 *.exe
 >>>>>>> f992060 (Remove compiled files from version control)
 =======
+=======
+>>>>>>> f7810de (rebase)
 *.o
 *.exe
 =======
+=======
+>>>>>>> dc1524a (Remove compiled files)
 # Ignore macOS Makefile
 Makefile
 <<<<<<< HEAD
@@ -33,5 +38,15 @@ Makefile
 *.o
 triangle_sim
 .vscode/
+<<<<<<< HEAD
 >>>>>>> 7bc4c62 (Ignorera Makefile, .o-filer, triangle_sim och .vscode)
+<<<<<<< HEAD
 >>>>>>> 1d39064 (rebase med main)
+=======
+=======
+=======
+*.o
+*.exe
+>>>>>>> f992060 (Remove compiled files from version control)
+>>>>>>> dc1524a (Remove compiled files)
+>>>>>>> f7810de (rebase)

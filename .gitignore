@@ -2,9 +2,13 @@
 # Ignore macOS Makefile
 Makefile
 *.o
+<<<<<<< HEAD
 triangle_sim
 .vscode/
 =======
 *.o
 *.exe
 >>>>>>> f992060 (Remove compiled files from version control)
+=======
+*.exe
+>>>>>>> ebc074b (Lägg till Makefile i .gitignore (lokal version för macOS))

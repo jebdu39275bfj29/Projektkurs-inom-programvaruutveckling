@@ -116,12 +116,23 @@ void updatePassingLogic(struct GameModel* model) {
     model->ball.y = model->players[from].y + offsetY;
 
     // 3) Kolla om passningen är “framme”
+    float coachTargetX = targetX - 50;
+    float coachTargetY = targetY - 30;
+
+    coachTargetX = fmax(model->grass.x, fmin(coachTargetX, model->grass.x + model->grass.width));
+    coachTargetY = fmax(model->grass.y, fmin(coachTargetY, model->grass.y + model->grass.height));
+
+    movePlayerTowards(&model->coach, coachTargetX, coachTargetY, MOVE_SPEED, model);
+
     if (fabs(model->players[from].x - targetX) < THRESHOLD &&
         fabs(model->players[from].y - targetY) < THRESHOLD) {
         model->step = (model->step + 1) % PLAYER_COUNT;
     }
 }
+<<<<<<< HEAD
 
 
 
 
+=======
+>>>>>>> 2dd25b5 (Jag har ändrat att coachen springer nära spelaren)

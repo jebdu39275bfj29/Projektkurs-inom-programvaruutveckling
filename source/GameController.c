@@ -121,3 +121,13 @@ void updatePassingLogic(struct GameModel* model) {
         model->step = (model->step + 1) % PLAYER_COUNT;
     }
 }
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+
+
+
+
+=======
+>>>>>>> 2dd25b5 (Jag har ändrat att coachen springer nära spelaren)
+>>>>>>> f79c782 (Jag har ändrat att coachen springer nära spelaren)

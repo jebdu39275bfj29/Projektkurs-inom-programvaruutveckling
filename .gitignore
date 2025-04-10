@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 # Ignore macOS Makefile
 Makefile
 *.o
 triangle_sim
 .vscode/
+=======
+*.o
+*.exe
+>>>>>>> f992060 (Remove compiled files from version control)

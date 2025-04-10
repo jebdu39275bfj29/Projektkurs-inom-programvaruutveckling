@@ -36,7 +36,9 @@ void initializeModel(struct GameModel* model, SDL_Texture* coachTexture)
     model->coach = (Player){
         model->grass.x + model->grass.width / 2,
         model->grass.y + model->grass.height / 2,
-        0, startTime, IDLE
+        0, 
+        startTime, 
+        IDLE
     };
     
     model->ball.x = model->players[0].x + 20;   // Lite offset från spelare 0

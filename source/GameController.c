@@ -122,12 +122,18 @@ void updatePassingLogic(struct GameModel* model) {
     }
 }
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> e3e5d52 (Fixat dubblicerat kod)
 
 
 
 
+<<<<<<< HEAD
 =======
 >>>>>>> 2dd25b5 (Jag har ändrat att coachen springer nära spelaren)
 >>>>>>> f79c782 (Jag har ändrat att coachen springer nära spelaren)
+=======
+>>>>>>> e3e5d52 (Fixat dubblicerat kod)

@@ -35,7 +35,7 @@ void renderGame(SDL_Renderer* renderer, SDL_Texture* playerTexture, SDL_Texture*
         SDL_RenderCopy(renderer, grassTexture, NULL, &grassRect);
     }
 
-    const int frameHeights = 87;
+    const int frameHeights = 89;
     const int spriteSheetRowMap[ANIMATION_COUNT] = { 0, 1, 2, 3, 4, 5 };
     const int animationFrameWidths[ANIMATION_COUNT] = { 101, 50, 40, 67, 50, 44 }; 
 
@@ -98,11 +98,11 @@ void renderGame(SDL_Renderer* renderer, SDL_Texture* playerTexture, SDL_Texture*
     
     Player* carrier = &model->players[model->passOrder[model->step % PLAYER_COUNT]];
     float rad = carrier->angle * M_PI / 180.0f;
-    model->ball.x = carrier->x + cos(rad) * 20;
-    model->ball.y = carrier->y + sin(rad) * 20;
+    model->ball.x = carrier->x + cos(rad) * 30;
+    model->ball.y = carrier->y + sin(rad) * 40;
 
 
-    const int ballFrameSize = 64;
+    const int ballFrameSize = 72;
     const int ballRowIndex = 0;
 
     Uint32 now = SDL_GetTicks();

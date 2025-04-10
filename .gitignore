@@ -1,5 +1,6 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 # Ignore macOS Makefile
 Makefile
 *.o
@@ -17,3 +18,11 @@ triangle_sim
 *.o
 *.exe
 >>>>>>> f992060 (Remove compiled files from version control)
+=======
+*.o
+*.exe
+=======
+# Ignore macOS Makefile
+Makefile
+>>>>>>> 5f427ea (Lägg till Makefile i .gitignore (lokal version för macOS))
+>>>>>>> 05f36db (rebase med main)

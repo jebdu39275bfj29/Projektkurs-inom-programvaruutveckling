@@ -95,15 +95,36 @@ void renderGame(SDL_Renderer* renderer, SDL_Texture* playerTexture, SDL_Texture*
         );
     }
 
-    // Rita bollen
+    
     Player* carrier = &model->players[model->passOrder[model->step % PLAYER_COUNT]];
-    float rad = model->ball.angle * M_PI / 180.0f;
+    float rad = carrier->angle * M_PI / 180.0f;
     model->ball.x = carrier->x + cos(rad) * 20;
     model->ball.y = carrier->y + sin(rad) * 20;
 
-    SDL_Rect ballSrc = { model->ball.frame * 64, 0, 64, 64 }; // välj rad 0 t.ex.
-    SDL_Rect ballDst = { (int)model->ball.x, (int)model->ball.y, 32, 32 };
-    SDL_RenderCopy(renderer, model->ball.texture, &ballSrc, &ballDst);
 
+    const int ballFrameSize = 64;
+    const int ballRowIndex = 0;
+
+    Uint32 now = SDL_GetTicks();
+    if (now - model->ball.lastFrameTime > FRAME_DELAY) {
+        model->ball.frame = (model->ball.frame + 1) % 7;
+        model->ball.lastFrameTime = now;
+    }
+
+    SDL_Rect ballSrc = {
+        model->ball.frame * ballFrameSize,
+        ballRowIndex * ballFrameSize,
+        ballFrameSize,
+        ballFrameSize
+    };
+
+    SDL_Rect ballDst = {
+        (int)model->ball.x,
+        (int)model->ball.y,
+        32,
+        32
+    };
+
+    SDL_RenderCopy(renderer, model->ball.texture, &ballSrc, &ballDst);
     SDL_RenderPresent(renderer);
 }

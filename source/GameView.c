@@ -3,6 +3,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 // Laddar textur
 static SDL_Texture* loadTexture(SDL_Renderer* renderer, const char* path) {
@@ -97,9 +98,29 @@ void renderGame(SDL_Renderer* renderer, SDL_Texture* playerTexture, SDL_Texture*
 
     
     Player* carrier = &model->players[model->passOrder[model->step % PLAYER_COUNT]];
+
     float rad = carrier->angle * M_PI / 180.0f;
-    model->ball.x = carrier->x + cos(rad) * 30;
-    model->ball.y = carrier->y + sin(rad) * 40;
+    float offsetX = cos(rad) * 20;
+    float offsetY = sin(rad) * 20;
+    
+    bool isLeftSide = carrier->x < (WINDOW_WIDTH / 2);
+    bool isMovingUp = carrier->angle > 180 && carrier->angle < 360;
+
+    bool isRightSide = carrier->x > (WINDOW_WIDTH / 2);
+    bool isMovingDown = carrier->angle > 60 && carrier->angle < 120;
+    
+    float additionalYOffset = 0;
+    if (isLeftSide && isMovingUp) {
+        additionalYOffset = 26; 
+    }
+    
+    if (isRightSide && isMovingDown) {
+        additionalYOffset = -26; 
+    }
+
+    model->ball.x = carrier->x + PLAYER_SIZE / 2 + offsetX - 16;
+    model->ball.y = carrier->y + PLAYER_SIZE / 2 + offsetY + additionalYOffset;
+    
 
 
     const int ballFrameSize = 72;

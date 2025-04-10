@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 # Ignore macOS Makefile
 Makefile
 *.o
@@ -12,3 +13,7 @@ triangle_sim
 =======
 *.exe
 >>>>>>> ebc074b (Lägg till Makefile i .gitignore (lokal version för macOS))
+=======
+*.o
+*.exe
+>>>>>>> f992060 (Remove compiled files from version control)

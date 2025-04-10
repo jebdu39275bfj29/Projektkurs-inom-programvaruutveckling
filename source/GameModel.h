@@ -23,6 +23,13 @@ typedef enum {
 extern const int animationFrameCounts[ANIMATION_COUNT];
 
 typedef struct {
+    float x, y;         // Bollens position
+    float angle;        // Hur mycket bollen har roterat (för att simulera rullning)
+    int width, height;  // Bollens storlek
+    SDL_Texture *texture;
+} Ball;
+
+typedef struct {
     float x, y;
     int frame;
     Uint32 lastFrameTime;
@@ -44,6 +51,7 @@ typedef struct GameModel {
     int step;
     Uint32 lastPassTime;
     Grass grass;
+    Ball ball;
 } GameModel;
 
 void cleanupModel(struct GameModel* model);

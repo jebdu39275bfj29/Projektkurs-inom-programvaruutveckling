@@ -40,7 +40,14 @@ void initializeModel(struct GameModel* model, SDL_Texture* coachTexture)
         startTime, 
         IDLE
     };
-
+    
+    model->ball.x = model->players[0].x + 20;   // Lite offset från spelare 0
+    model->ball.y = model->players[0].y;
+    model->ball.angle = 0.0f;                  // Ingen rotation initialt
+    model->ball.width = 32;                    // Lagom storlek i px
+    model->ball.height = 32;
+    model->ball.texture = NULL; // tills vi laddar in texturen i GameView
+    
     model->coachTexture = coachTexture;
 
     int order[PLAYER_COUNT] = {4, 1, 3, 5, 2, 0}; 

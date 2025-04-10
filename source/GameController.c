@@ -116,8 +116,6 @@ void updatePassingLogic(struct GameModel* model) {
     model->ball.y = model->players[from].y + offsetY;
 
     // 3) Kolla om passningen är “framme”
-
-
     if (fabs(model->players[from].x - targetX) < THRESHOLD &&
         fabs(model->players[from].y - targetY) < THRESHOLD) {
         model->step = (model->step + 1) % PLAYER_COUNT;

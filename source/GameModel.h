@@ -26,6 +26,14 @@ typedef struct {
     float x, y;
     int frame;
     Uint32 lastFrameTime;
+    float angle;
+    SDL_Texture* texture;
+} Ball;
+
+typedef struct {
+    float x, y;
+    int frame;
+    Uint32 lastFrameTime;
     int animationState;
     float angle;
 } Player;
@@ -44,6 +52,7 @@ typedef struct GameModel {
     int step;
     Uint32 lastPassTime;
     Grass grass;
+    Ball ball;
 } GameModel;
 
 void cleanupModel(struct GameModel* model);

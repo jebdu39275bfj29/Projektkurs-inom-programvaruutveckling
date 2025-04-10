@@ -20,6 +20,7 @@ void initializeModel(struct GameModel* model, SDL_Texture* coachTexture)
     model->grass.height = 580;
     model->grass.texture = NULL;
 
+
     int offsetX = 10; 
     int offsetY = 10; 
 
@@ -38,6 +39,13 @@ void initializeModel(struct GameModel* model, SDL_Texture* coachTexture)
         model->grass.y + model->grass.height / 2,
         0, startTime, IDLE
     };
+
+    model->ball.x = model->coach.x;
+    model->ball.y = model->coach.y;
+    model->ball.frame = 0;
+    model->ball.lastFrameTime = SDL_GetTicks();
+    model->ball.angle = 0;
+    model->ball.texture = NULL;
 
     model->coachTexture = coachTexture;
 

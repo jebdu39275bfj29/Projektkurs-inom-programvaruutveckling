@@ -21,6 +21,7 @@ GameTextures loadAllTextures(SDL_Renderer* renderer) {
     textures.playerTexture = loadTexture(renderer, "resources/Players.png");
     textures.grassTexture = loadTexture(renderer, "resources/Pitch.png");
     textures.coachTexture = loadTexture(renderer, "resources/Coach.png");
+    textures.ballTexture = loadTexture(renderer, "resources/Ball.png");
     return textures;
 }
 
@@ -93,6 +94,16 @@ void renderGame(SDL_Renderer* renderer, SDL_Texture* playerTexture, SDL_Texture*
             (int)(model->players[to].y + PLAYER_SIZE / 2)
         );
     }
+
+    // Rita bollen
+    Player* carrier = &model->players[model->passOrder[model->step % PLAYER_COUNT]];
+    float rad = model->ball.angle * M_PI / 180.0f;
+    model->ball.x = carrier->x + cos(rad) * 20;
+    model->ball.y = carrier->y + sin(rad) * 20;
+
+    SDL_Rect ballSrc = { model->ball.frame * 64, 0, 64, 64 }; // välj rad 0 t.ex.
+    SDL_Rect ballDst = { (int)model->ball.x, (int)model->ball.y, 32, 32 };
+    SDL_RenderCopy(renderer, model->ball.texture, &ballSrc, &ballDst);
 
     SDL_RenderPresent(renderer);
 }

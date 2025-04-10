@@ -9,6 +9,7 @@ typedef struct GameTextures {
     SDL_Texture* playerTexture;
     SDL_Texture* grassTexture;
     SDL_Texture* coachTexture;
+    SDL_Texture* ballTexture;
 } GameTextures;
 
 GameTextures loadAllTextures(SDL_Renderer* renderer);

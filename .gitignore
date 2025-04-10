@@ -24,5 +24,14 @@ triangle_sim
 =======
 # Ignore macOS Makefile
 Makefile
+<<<<<<< HEAD
 >>>>>>> 5f427ea (Lägg till Makefile i .gitignore (lokal version för macOS))
+<<<<<<< HEAD
 >>>>>>> 05f36db (rebase med main)
+=======
+=======
+*.o
+triangle_sim
+.vscode/
+>>>>>>> 7bc4c62 (Ignorera Makefile, .o-filer, triangle_sim och .vscode)
+>>>>>>> 1d39064 (rebase med main)

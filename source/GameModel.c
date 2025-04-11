@@ -12,6 +12,7 @@ void cleanupModel(struct GameModel* model) {
     }
 }
 
+
 void initializeModel(struct GameModel* model, SDL_Texture* coachTexture)
  {
     model->grass.x = 10;

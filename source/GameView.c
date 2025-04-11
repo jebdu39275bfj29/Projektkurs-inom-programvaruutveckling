@@ -3,6 +3,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 // Laddar textur
 static SDL_Texture* loadTexture(SDL_Renderer* renderer, const char* path) {
@@ -35,7 +36,7 @@ void renderGame(SDL_Renderer* renderer, SDL_Texture* playerTexture, SDL_Texture*
         SDL_RenderCopy(renderer, grassTexture, NULL, &grassRect);
     }
 
-    const int frameHeights = 87;
+    const int frameHeights = 89;
     const int spriteSheetRowMap[ANIMATION_COUNT] = { 0, 1, 2, 3, 4, 5 };
     const int animationFrameWidths[ANIMATION_COUNT] = { 101, 50, 40, 67, 50, 44 }; 
 
@@ -137,5 +138,56 @@ void renderGame(SDL_Renderer* renderer, SDL_Texture* playerTexture, SDL_Texture*
                          SDL_FLIP_NONE);
     }
 
+    
+    Player* carrier = &model->players[model->passOrder[model->step % PLAYER_COUNT]];
+
+    float rad = carrier->angle * M_PI / 180.0f;
+    float offsetX = cos(rad) * 20;
+    float offsetY = sin(rad) * 20;
+    
+    bool isLeftSide = carrier->x < (WINDOW_WIDTH / 2);
+    bool isMovingUp = carrier->angle > 180 && carrier->angle < 360;
+
+    bool isRightSide = carrier->x > (WINDOW_WIDTH / 2);
+    bool isMovingDown = carrier->angle > 60 && carrier->angle < 120;
+    
+    float additionalYOffset = 0;
+    if (isLeftSide && isMovingUp) {
+        additionalYOffset = 26; 
+    }
+    
+    if (isRightSide && isMovingDown) {
+        additionalYOffset = -26; 
+    }
+
+    model->ball.x = carrier->x + PLAYER_SIZE / 2 + offsetX - 16;
+    model->ball.y = carrier->y + PLAYER_SIZE / 2 + offsetY + additionalYOffset;
+    
+
+
+    const int ballFrameSize = 72;
+    const int ballRowIndex = 0;
+
+    Uint32 now = SDL_GetTicks();
+    if (now - model->ball.lastFrameTime > FRAME_DELAY) {
+        model->ball.frame = (model->ball.frame + 1) % 7;
+        model->ball.lastFrameTime = now;
+    }
+
+    SDL_Rect ballSrc = {
+        model->ball.frame * ballFrameSize,
+        ballRowIndex * ballFrameSize,
+        ballFrameSize,
+        ballFrameSize
+    };
+
+    SDL_Rect ballDst = {
+        (int)model->ball.x,
+        (int)model->ball.y,
+        32,
+        32
+    };
+
+    SDL_RenderCopy(renderer, model->ball.texture, &ballSrc, &ballDst);
     SDL_RenderPresent(renderer);
 }

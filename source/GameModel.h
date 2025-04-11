@@ -23,11 +23,14 @@ typedef enum {
 extern const int animationFrameCounts[ANIMATION_COUNT];
 
 typedef struct {
-    float x, y;         // Bollens position
-    float angle;        // Hur mycket bollen har roterat (för att simulera rullning)
-    int width, height;  // Bollens storlek
-    SDL_Texture *texture;
+    float x, y;               // Position
+    float angle;              // Rotation
+    int width, height;        // Storlek i pixlar
+    int frame;                // Animationsframe
+    Uint32 lastFrameTime;     // Tid för senaste frame
+    SDL_Texture *texture;     // Textur
 } Ball;
+
 
 typedef struct {
     float x, y;

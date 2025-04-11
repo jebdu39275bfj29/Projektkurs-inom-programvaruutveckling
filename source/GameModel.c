@@ -12,6 +12,7 @@ void cleanupModel(struct GameModel* model) {
     }
 }
 
+
 void initializeModel(struct GameModel* model, SDL_Texture* coachTexture)
  {
     model->grass.x = 10;
@@ -19,6 +20,7 @@ void initializeModel(struct GameModel* model, SDL_Texture* coachTexture)
     model->grass.width = 780;
     model->grass.height = 580;
     model->grass.texture = NULL;
+
 
     int offsetX = 10; 
     int offsetY = 10; 
@@ -48,6 +50,14 @@ void initializeModel(struct GameModel* model, SDL_Texture* coachTexture)
     model->ball.height = 32;
     model->ball.texture = NULL; // tills vi laddar in texturen i GameView
     
+
+    model->ball.x = model->coach.x;
+    model->ball.y = model->coach.y;
+    model->ball.frame = 0;
+    model->ball.lastFrameTime = SDL_GetTicks();
+    model->ball.angle = 0;
+    model->ball.texture = NULL;
+
     model->coachTexture = coachTexture;
 
     int order[PLAYER_COUNT] = {4, 1, 3, 5, 2, 0}; 

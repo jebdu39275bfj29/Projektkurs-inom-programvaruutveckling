@@ -48,6 +48,8 @@ int startGameLoop() {
     initializeModel(&model, textures.coachTexture);
     model.ball.texture = textures.ballTexture;
 
+    model.ball.texture = textures.ballTexture;
+
     bool running = true;
 
     while (running) {
@@ -62,6 +64,7 @@ int startGameLoop() {
     SDL_DestroyTexture(textures.playerTexture);
     SDL_DestroyTexture(textures.grassTexture);
     SDL_DestroyTexture(textures.coachTexture);
+    SDL_DestroyTexture(model.ball.texture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     IMG_Quit();

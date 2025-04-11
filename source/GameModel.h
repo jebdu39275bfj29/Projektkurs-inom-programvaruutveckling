@@ -51,7 +51,8 @@ typedef struct GameModel {
     Player coach;
     SDL_Texture* coachTexture;
     int passOrder[PLAYER_COUNT];
-    int step;
+    float coachDetectionRadius;
+     int step;
     Uint32 lastPassTime;
     Grass grass;
     Ball ball;

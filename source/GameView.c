@@ -188,6 +188,23 @@ void renderGame(SDL_Renderer* renderer, SDL_Texture* playerTexture, SDL_Texture*
         32
     };
 
-    SDL_RenderCopy(renderer, model->ball.texture, &ballSrc, &ballDst);
+        SDL_RenderCopy(renderer, model->ball.texture, &ballSrc, &ballDst);
+
+        // --- NYTT: Rita cirkeln runt coachen ---
+        int cx = (int)(model->coach.x + PLAYER_SIZE / 2);
+        int cy = (int)(model->coach.y + PLAYER_SIZE / 2);
+        int r = (int)model->coachDetectionRadius;
+        
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // Röd, lite transparens
+        for (int angle = 0; angle < 360; angle += 2) {
+            float rad = angle * M_PI / 180.0f;
+            int x = cx + (int)(cosf(rad) * r);
+            int y = cy + (int)(sinf(rad) * r);
+            SDL_RenderDrawPoint(renderer, x, y);
+        }
+        
+    
+
+    
     SDL_RenderPresent(renderer);
 }

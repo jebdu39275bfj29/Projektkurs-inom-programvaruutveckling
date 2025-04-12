@@ -27,13 +27,13 @@ void initializeModel(struct GameModel* model, SDL_Texture* coachTexture)
 
     Uint32 startTime = SDL_GetTicks();
 
-    model->players[0] = (Player){ model->grass.x, model->grass.y - offsetY, 0, startTime, RUN }; // vänster övre hörn
-    model->players[1] = (Player){ model->grass.x + model->grass.width - (10 * offsetX), model->grass.y, 0, startTime, RUN }; // höger övre hörn
-    model->players[2] = (Player){ model->grass.x - offsetX, model->grass.y + model->grass.height - (10 * offsetY), 0, startTime, RUN }; // vänster nedre hörn
+    model->players[0] = (Player){ model->grass.x + 30, model->grass.y - offsetY + 50, 0, startTime, RUN }; // vänster övre hörn
+    model->players[1] = (Player){ model->grass.x + model->grass.width - (10 * offsetX), model->grass.y + 50, 0, startTime, RUN }; // höger övre hörn
+    model->players[2] = (Player){ model->grass.x - offsetX + 30, model->grass.y + model->grass.height - (10 * offsetY) - 80, 0, startTime, RUN }; // vänster nedre hörn
 
-    model->players[3] = (Player){ model->grass.x + model->grass.width - (10 * offsetX), model->grass.y + model->grass.height - (10 * offsetY), 0, startTime, RUN }; // höger nedre hörn
+    model->players[3] = (Player){ model->grass.x + model->grass.width - (10 * offsetX), model->grass.y + model->grass.height - (10 * offsetY) - 80, 0, startTime, RUN }; // höger nedre hörn
     model->players[4] = (Player){ model->grass.x + model->grass.width / 2, model->grass.y, 0, startTime, RUN }; // mitt övre
-    model->players[5] = (Player){ model->grass.x + (model->grass.width + (2 * offsetX)) / 2, model->grass.y + model->grass.height - (11 * offsetY), 0, startTime, RUN }; // mitt nedre
+    model->players[5] = (Player){ model->grass.x + (model->grass.width + (2 * offsetX)) / 2, model->grass.y + model->grass.height - (11 * offsetY) + 20, 0, startTime, RUN }; // mitt nedre
 
     model->coach = (Player){
         model->grass.x + model->grass.width / 2,
@@ -97,3 +97,5 @@ void movePlayerTowards(Player *player, float targetX, float targetY, float speed
         player->frame = 0;
     }
 }
+
+

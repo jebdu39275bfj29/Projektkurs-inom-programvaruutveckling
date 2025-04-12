@@ -9,5 +9,7 @@ struct GameModel;
 int startGameLoop();
 
 void updatePassingLogic(struct GameModel* model);
+void steerCoachNoStuck(struct GameModel* model, float targetX, float targetY, float speed);
+
 
 #endif

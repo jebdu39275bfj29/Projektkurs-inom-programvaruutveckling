@@ -43,13 +43,6 @@ void initializeModel(struct GameModel* model, SDL_Texture* coachTexture)
         IDLE
     };
     
-    model->ball.x = model->players[0].x + 20;   // Lite offset från spelare 0
-    model->ball.y = model->players[0].y;
-    model->ball.angle = 0.0f;                  // Ingen rotation initialt
-    model->ball.width = 32;                    // Lagom storlek i px
-    model->ball.height = 32;
-    model->ball.texture = NULL; // tills vi laddar in texturen i GameView
-    
 
     model->ball.x = model->coach.x;
     model->ball.y = model->coach.y;

@@ -154,6 +154,10 @@ void steerCoachNoStuck(GameModel* model, float targetX, float targetY, float spe
     float cx = model->coach.x + PLAYER_SIZE/2.0f;
     float cy = model->coach.y + PLAYER_SIZE/2.0f;
 
+    // 1) Hitta närmaste spelare
+    float nearestDist = 999999.0f;
+    int nearestIndex = -1;
+
     for (int i = 0; i < PLAYER_COUNT; i++) {
         float px = model->players[i].x + PLAYER_SIZE/2.0f;
         float py = model->players[i].y + PLAYER_SIZE/2.0f;
@@ -161,14 +165,24 @@ void steerCoachNoStuck(GameModel* model, float targetX, float targetY, float spe
         float dyP = cy - py;
         float distP = sqrtf(dxP*dxP + dyP*dyP);
 
-        if (distP < repulsionRange && distP > 0.001f) {
-            float scale = (repulsionRange - distP) / repulsionRange; 
-            float rx = (dxP / distP) * scale * (repulsionStrength / 100.0f);
-            float ry = (dyP / distP) * scale * (repulsionStrength / 100.0f);
-            vx += rx;
-            vy += ry;
+        if (distP < nearestDist) {
+            nearestDist = distP;
+            nearestIndex = i;
         }
     }
+
+    // 2) Bara om närmaste spelaren är inom repulsionRange => räkna ut repulsion
+    if (nearestIndex >= 0 && nearestDist < repulsionRange && nearestDist > 0.001f) {
+        float scale = (repulsionRange - nearestDist) / repulsionRange;
+        float dxP = cx - (model->players[nearestIndex].x + PLAYER_SIZE/2.0f);
+        float dyP = cy - (model->players[nearestIndex].y + PLAYER_SIZE/2.0f);
+        float rx = (dxP / nearestDist) * scale * (repulsionStrength / 100.0f);
+        float ry = (dyP / nearestDist) * scale * (repulsionStrength / 100.0f);
+
+        vx += rx;
+        vy += ry;
+    }
+
 
     // Normalisera vektorn
     float finalLen = sqrtf(vx*vx + vy*vy);

@@ -42,6 +42,7 @@ void initializeModel(struct GameModel* model, SDL_Texture* coachTexture)
         startTime, 
         IDLE
     };
+
     
 
     model->ball.x = model->coach.x;

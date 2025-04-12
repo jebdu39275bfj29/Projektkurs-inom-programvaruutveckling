@@ -191,7 +191,7 @@ void renderGame(SDL_Renderer* renderer, SDL_Texture* playerTexture, SDL_Texture*
         SDL_RenderCopy(renderer, model->ball.texture, &ballSrc, &ballDst);
 
         // --- NYTT: Rita cirkeln runt coachen ---
-        int cx = (int)(model->coach.x + PLAYER_SIZE / 2);
+        /*int cx = (int)(model->coach.x + PLAYER_SIZE / 2);
         int cy = (int)(model->coach.y + PLAYER_SIZE / 2);
         int r = (int)model->coachDetectionRadius;
         
@@ -201,10 +201,29 @@ void renderGame(SDL_Renderer* renderer, SDL_Texture* playerTexture, SDL_Texture*
             int x = cx + (int)(cosf(rad) * r);
             int y = cy + (int)(sinf(rad) * r);
             SDL_RenderDrawPoint(renderer, x, y);
-        }
-        
-    
+        }*/
 
+
+        // Aktivera blandningsläge för alfakanaler (genomskinlighet)
+        SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+
+        // Välj en ljusare grön nyans och mer genomskinlighet
+        SDL_SetRenderDrawColor(renderer, 144, 238, 144, 60);
+
+        // Mittpunkt för cirkeln (coachens centrum)
+        int cx = (int)(model->coach.x + PLAYER_SIZE / 2);
+        int cy = (int)(model->coach.y + PLAYER_SIZE / 2);
+        int r = (int)model->coachDetectionRadius;
+
+        // Fyll cirkeln via pixel-loop
+        for (int dy = -r; dy <= r; dy++) {
+            int dxMax = (int)sqrtf((float)(r*r - dy*dy));
+            for (int dx = -dxMax; dx <= dxMax; dx++) {
+                SDL_RenderDrawPoint(renderer, cx + dx, cy + dy);
+            }
+        }
+
+    
     
     SDL_RenderPresent(renderer);
 }

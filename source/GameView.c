@@ -189,6 +189,35 @@ void renderGame(SDL_Renderer* renderer, SDL_Texture* playerTexture, SDL_Texture*
     };
 
         SDL_RenderCopy(renderer, model->ball.texture, &ballSrc, &ballDst);
+        // --- Fylld riktningstriangel framför coachen ---
+            float angleRad = model->coach.angle * M_PI / 180.0f;
+            float size = 34.0f;
+
+            int cx = (int)(model->coach.x + PLAYER_SIZE / 2);
+            int cy = (int)(model->coach.y + PLAYER_SIZE / 2);
+
+        // Spets
+            int tipX = cx + cosf(angleRad) * size;
+            int tipY = cy + sinf(angleRad) * size;
+
+        // Basens två hörn
+            float sideAngle = angleRad + M_PI / 2.0f;
+            int base1X = cx + cosf(angleRad) * (size / 2.5f) + cosf(sideAngle) * (size / 2.5f);
+            int base1Y = cy + sinf(angleRad) * (size / 2.5f) + sinf(sideAngle) * (size / 2.5f);
+
+            int base2X = cx + cosf(angleRad) * (size / 2.5f) - cosf(sideAngle) * (size / 2.5f);
+            int base2Y = cy + sinf(angleRad) * (size / 2.5f) - sinf(sideAngle) * (size / 2.5f);
+
+        // Fyll triangeln manuellt (med linjer mellan punkterna)
+            SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255); // gul
+            for (int i = 0; i <= 100; ++i) {
+                float t = i / 100.0f;
+                int x1 = (int)(base1X + t * (tipX - base1X));
+                int y1 = (int)(base1Y + t * (tipY - base1Y));
+                int x2 = (int)(base2X + t * (tipX - base2X));
+                int y2 = (int)(base2Y + t * (tipY - base2Y));
+                SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
+            }
 
         // --- NYTT: Rita cirkeln runt coachen ---
         /*int cx = (int)(model->coach.x + PLAYER_SIZE / 2);
@@ -211,17 +240,19 @@ void renderGame(SDL_Renderer* renderer, SDL_Texture* playerTexture, SDL_Texture*
         SDL_SetRenderDrawColor(renderer, 144, 238, 144, 60);
 
         // Mittpunkt för cirkeln (coachens centrum)
-        int cx = (int)(model->coach.x + PLAYER_SIZE / 2);
-        int cy = (int)(model->coach.y + PLAYER_SIZE / 2);
+        int circleCx = (int)(model->coach.x + PLAYER_SIZE / 2);
+        int circleCy = (int)(model->coach.y + PLAYER_SIZE / 2);
         int r = (int)model->coachDetectionRadius;
 
         // Fyll cirkeln via pixel-loop
         for (int dy = -r; dy <= r; dy++) {
             int dxMax = (int)sqrtf((float)(r*r - dy*dy));
             for (int dx = -dxMax; dx <= dxMax; dx++) {
-                SDL_RenderDrawPoint(renderer, cx + dx, cy + dy);
+                SDL_RenderDrawPoint(renderer, circleCx + dx, circleCy + dy);
             }
         }
+
+        
 
     
     

@@ -4,7 +4,7 @@ CC = gcc
 SRCDIR = ./source
 INCLUDE = C:\msys64\mingw64\include\SDL2
 CFLAGS = -g -I$(INCLUDE) -c
-LDFLAGS = -lmingw32 -lSDL2main -lSDL2_image -lSDL2 -mwindows
+LDFLAGS = -lmingw32 -lSDL2main -lSDL2_image -lSDL2 -lSDL2_ttf -mwindows
 EXECUTABLE = triangle_sim
 
 vpath %.h $(SRCDIR)

@@ -4,6 +4,24 @@
 #include <SDL2/SDL_image.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <SDL2/SDL_ttf.h>
+
+// Variabel för font
+static TTF_Font* font = NULL;
+
+bool initializeTextSystem() {
+    if (TTF_Init() < 0) {
+        SDL_Log("TTF_Init Error: %s", TTF_GetError());
+        return false;
+    }
+
+    font = TTF_OpenFont("resources/Arial.ttf", 16);
+    if (!font) {
+        SDL_Log("Failed to load font: %s", TTF_GetError());
+        return false;
+    }
+    return true;
+}
 
 // Laddar textur
 static SDL_Texture* loadTexture(SDL_Renderer* renderer, const char* path) {
@@ -252,9 +270,51 @@ void renderGame(SDL_Renderer* renderer, SDL_Texture* playerTexture, SDL_Texture*
             }
         }
 
-        
+        // Coachens mittpunkt
+        float coachCenterX = model->coach.x + PLAYER_SIZE / 2.0f;
+        float coachCenterY = model->coach.y + PLAYER_SIZE / 2.0f;
 
-    
+        // 100 pixlar = 5 meter => 1 px = 0.05 m
+        float pxToMeter = 5.0f / model->coachDetectionRadius;
+
+        // Här lägger du texten rad för rad
+        for (int i = 0; i < PLAYER_COUNT; i++) {
+            // Spelarens mittpunkt
+            float playerCenterX = model->players[i].x + PLAYER_SIZE / 2.0f;
+            float playerCenterY = model->players[i].y + PLAYER_SIZE / 2.0f;
+
+            float dx = playerCenterX - coachCenterX;
+            float dy = playerCenterY - coachCenterY;
+            float distPixels = sqrtf(dx*dx + dy*dy);
+
+            // Omvandla pixelavstånd -> meteravstånd
+            float distMeters = distPixels * pxToMeter;
+
+            // Bygg textsträng
+            char buffer[64];
+            snprintf(buffer, sizeof(buffer), "P%d: %.2f m", i, distMeters);
+
+            // Skapa surface + textur av 'buffer' (SDL_ttf)
+            SDL_Color white = {255, 255, 255, 255};
+            SDL_Surface* textSurface = TTF_RenderText_Blended(font, buffer, white);
+            if (textSurface) {
+                SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+                if (textTexture) {
+                    // Bestäm en position för texten
+                    SDL_Rect textRect;
+                    textRect.x = 10;              // 10 pixlar från vänster
+                    textRect.y = 10 + i * 20;     // 10 pixlar från toppen + 20 per spelare
+                    textRect.w = textSurface->w;
+                    textRect.h = textSurface->h;
+
+                    // Rita texten
+                    SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
+
+                    SDL_DestroyTexture(textTexture);
+                }
+                SDL_FreeSurface(textSurface);
+            }
+        }
     
     SDL_RenderPresent(renderer);
 }

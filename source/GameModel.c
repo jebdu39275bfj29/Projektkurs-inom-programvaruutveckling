@@ -36,13 +36,14 @@ void initializeModel(struct GameModel* model, SDL_Texture* coachTexture)
     model->players[5] = (Player){ model->grass.x + (model->grass.width + (2 * offsetX)) / 2, model->grass.y + model->grass.height - (11 * offsetY), 0, startTime, RUN }; // mitt nedre
 
     model->coach = (Player){
-        model->grass.x + model->grass.width / 2,
-        model->grass.y + model->grass.height / 2,
+        //model->grass.x + model->grass.width / 2,
+        //model->grass.y + model->grass.height / 2,
+        model->grass.xCenter = model->grass.x + model->grass.width / 2,
+        model->grass.yCenter = model->grass.y + model->grass.height / 2,
         0, 
         startTime, 
         IDLE
     };
-
     
 
     model->ball.x = model->coach.x;
@@ -61,6 +62,15 @@ void initializeModel(struct GameModel* model, SDL_Texture* coachTexture)
         model->passOrder[i] = order[i];
     }
 
+    for (int i = 0; i < PLAYER_COUNT; i++) {
+        model->players[i].originalX = model->players[i].x;
+        model->players[i].originalY = model->players[i].y;
+        model->players[i].targetX = model->players[i].x;
+        model->players[i].targetY = model->players[i].y;
+        model->players[i].hasBall = 0;
+    }
+
+    model->players[model->passOrder[0]].hasBall = 1;
     model->step = 0;
     model->lastPassTime = SDL_GetTicks();
 }
@@ -89,7 +99,6 @@ void movePlayerTowards(Player *player, float targetX, float targetY, float speed
         player->y = targetY;
         player->animationState = RUN;
         player->frame = 0;
+        player->lastFrameTime = SDL_GetTicks();
     }
 }
-
-

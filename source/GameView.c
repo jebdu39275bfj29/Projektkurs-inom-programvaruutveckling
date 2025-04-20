@@ -38,7 +38,7 @@ void renderGame(SDL_Renderer* renderer, SDL_Texture* playerTexture, SDL_Texture*
 
     const int frameHeights = 89;
     const int spriteSheetRowMap[ANIMATION_COUNT] = { 0, 1, 2, 3, 4, 5 };
-    const int animationFrameWidths[ANIMATION_COUNT] = { 101, 50, 40, 67, 50, 44 }; 
+    const int animationFrameWidths[ANIMATION_COUNT] = { 48, 50, 40, 67, 50, 44}; 
 
     // Rita spelarna med rotation
     for (int i = 0; i < PLAYER_COUNT; i++) {

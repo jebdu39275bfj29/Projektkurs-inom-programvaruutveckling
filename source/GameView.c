@@ -4,6 +4,24 @@
 #include <SDL2/SDL_image.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <SDL2/SDL_ttf.h>
+
+// Variabel för font
+static TTF_Font* font = NULL;
+
+bool initializeTextSystem() {
+    if (TTF_Init() < 0) {
+        SDL_Log("TTF_Init Error: %s", TTF_GetError());
+        return false;
+    }
+
+    font = TTF_OpenFont("resources/Arial.ttf", 16);
+    if (!font) {
+        SDL_Log("Failed to load font: %s", TTF_GetError());
+        return false;
+    }
+    return true;
+}
 
 // Laddar textur
 static SDL_Texture* loadTexture(SDL_Renderer* renderer, const char* path) {
@@ -189,6 +207,35 @@ void renderGame(SDL_Renderer* renderer, SDL_Texture* playerTexture, SDL_Texture*
     };
 
         SDL_RenderCopy(renderer, model->ball.texture, &ballSrc, &ballDst);
+        // --- Fylld riktningstriangel framför coachen ---
+            float angleRad = model->coach.angle * M_PI / 180.0f;
+            float size = 34.0f;
+
+            int cx = (int)(model->coach.x + PLAYER_SIZE / 2);
+            int cy = (int)(model->coach.y + PLAYER_SIZE / 2);
+
+        // Spets
+            int tipX = cx + cosf(angleRad) * size;
+            int tipY = cy + sinf(angleRad) * size;
+
+        // Basens två hörn
+            float sideAngle = angleRad + M_PI / 2.0f;
+            int base1X = cx + cosf(angleRad) * (size / 2.5f) + cosf(sideAngle) * (size / 2.5f);
+            int base1Y = cy + sinf(angleRad) * (size / 2.5f) + sinf(sideAngle) * (size / 2.5f);
+
+            int base2X = cx + cosf(angleRad) * (size / 2.5f) - cosf(sideAngle) * (size / 2.5f);
+            int base2Y = cy + sinf(angleRad) * (size / 2.5f) - sinf(sideAngle) * (size / 2.5f);
+
+        // Fyll triangeln manuellt (med linjer mellan punkterna)
+            SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255); // gul
+            for (int i = 0; i <= 100; ++i) {
+                float t = i / 100.0f;
+                int x1 = (int)(base1X + t * (tipX - base1X));
+                int y1 = (int)(base1Y + t * (tipY - base1Y));
+                int x2 = (int)(base2X + t * (tipX - base2X));
+                int y2 = (int)(base2Y + t * (tipY - base2Y));
+                SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
+            }
 
         // --- NYTT: Rita cirkeln runt coachen ---
         /*int cx = (int)(model->coach.x + PLAYER_SIZE / 2);
@@ -211,19 +258,63 @@ void renderGame(SDL_Renderer* renderer, SDL_Texture* playerTexture, SDL_Texture*
         SDL_SetRenderDrawColor(renderer, 144, 238, 144, 60);
 
         // Mittpunkt för cirkeln (coachens centrum)
-        int cx = (int)(model->coach.x + PLAYER_SIZE / 2);
-        int cy = (int)(model->coach.y + PLAYER_SIZE / 2);
+        int circleCx = (int)(model->coach.x + PLAYER_SIZE / 2);
+        int circleCy = (int)(model->coach.y + PLAYER_SIZE / 2);
         int r = (int)model->coachDetectionRadius;
 
         // Fyll cirkeln via pixel-loop
         for (int dy = -r; dy <= r; dy++) {
             int dxMax = (int)sqrtf((float)(r*r - dy*dy));
             for (int dx = -dxMax; dx <= dxMax; dx++) {
-                SDL_RenderDrawPoint(renderer, cx + dx, cy + dy);
+                SDL_RenderDrawPoint(renderer, circleCx + dx, circleCy + dy);
             }
         }
 
-    
+        // Coachens mittpunkt
+        float coachCenterX = model->coach.x + PLAYER_SIZE / 2.0f;
+        float coachCenterY = model->coach.y + PLAYER_SIZE / 2.0f;
+
+        // 100 pixlar = 5 meter => 1 px = 0.05 m
+        float pxToMeter = 5.0f / model->coachDetectionRadius;
+
+        // Här lägger du texten rad för rad
+        for (int i = 0; i < PLAYER_COUNT; i++) {
+            // Spelarens mittpunkt
+            float playerCenterX = model->players[i].x + PLAYER_SIZE / 2.0f;
+            float playerCenterY = model->players[i].y + PLAYER_SIZE / 2.0f;
+
+            float dx = playerCenterX - coachCenterX;
+            float dy = playerCenterY - coachCenterY;
+            float distPixels = sqrtf(dx*dx + dy*dy);
+
+            // Omvandla pixelavstånd -> meteravstånd
+            float distMeters = distPixels * pxToMeter;
+
+            // Bygg textsträng
+            char buffer[64];
+            snprintf(buffer, sizeof(buffer), "P%d: %.2f m", i, distMeters);
+
+            // Skapa surface + textur av 'buffer' (SDL_ttf)
+            SDL_Color white = {255, 255, 255, 255};
+            SDL_Surface* textSurface = TTF_RenderText_Blended(font, buffer, white);
+            if (textSurface) {
+                SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+                if (textTexture) {
+                    // Bestäm en position för texten
+                    SDL_Rect textRect;
+                    textRect.x = 10;              // 10 pixlar från vänster
+                    textRect.y = 10 + i * 20;     // 10 pixlar från toppen + 20 per spelare
+                    textRect.w = textSurface->w;
+                    textRect.h = textSurface->h;
+
+                    // Rita texten
+                    SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
+
+                    SDL_DestroyTexture(textTexture);
+                }
+                SDL_FreeSurface(textSurface);
+            }
+        }
     
     SDL_RenderPresent(renderer);
 }

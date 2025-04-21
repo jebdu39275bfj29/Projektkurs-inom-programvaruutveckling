@@ -7,15 +7,34 @@
 #include <stdbool.h>
 
 
-static bool handleEvents() {
+static void coachIdle(Player* coach){
+        if (coach->animationState != IDLE) {
+            coach->animationState = IDLE;
+            coach->frame          = 0;          // första bilden i idle‑raden
+            coach->lastFrameTime  = SDL_GetTicks();
+        }
+    }
+
+
+static bool handleEvents(GameModel* model)
+{
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
-        if (event.type == SDL_QUIT) {
+
+        if (event.type == SDL_QUIT)
             return false;
+
+        if (event.type == SDL_MOUSEBUTTONDOWN &&
+            event.button.button == SDL_BUTTON_LEFT) {
+
+            model->coachTargetX = (float)event.button.x - PLAYER_SIZE/2.0f;
+            model->coachTargetY = (float)event.button.y - PLAYER_SIZE/2.0f;
+            model->coachManual  = true;
         }
     }
     return true;
 }
+
 
 int startGameLoop() {
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
@@ -57,7 +76,7 @@ int startGameLoop() {
     model.passCompleted = true;
     handle_pass(&model, model.passOrder[0], model.passOrder[1]);
     while (running) {
-        running = handleEvents();
+        running = handleEvents(&model);
 
         updatePassingLogic(&model);
         update_players(model.players);
@@ -89,6 +108,7 @@ void updatePassingLogic(GameModel* model) {
     
     movePlayerTowards(fromPlayer, toPlayer->x, toPlayer->y, MOVE_SPEED, model);
 
+
     if (fabs(fromPlayer->x - toPlayer->x) < THRESHOLD &&
         fabs(fromPlayer->y - toPlayer->y) < THRESHOLD) {
 
@@ -114,12 +134,36 @@ void updatePassingLogic(GameModel* model) {
 
     }
 
-    updateCoachPosition(toPlayer->x, toPlayer->y, model);
+    //updateCoachPosition(toPlayer->x, toPlayer->y, model);
     handle_pass(model, model->passOrder[0], model->passOrder[1]);
+
+
+    //coach‑rörelse (MANUELL)
+    if (model->coachManual){
+        float dx = model->coachTargetX - model->coach.x;
+        float dy = model->coachTargetY - model->coach.y;
+        float dist = sqrtf(dx*dx + dy*dy);
+
+        if (dist < 1.0f) {                   // ”framme”
+            model->coachManual = false;
+            coachIdle(&model->coach);        // ① sätt IDLE & frame=0
+        } else {
+            movePlayerTowards(&model->coach,
+                            model->coachTargetX,
+                            model->coachTargetY,
+                            COACH_SPEED,
+                            model);
+        }
+    }
+    else {                                   // ingen aktiv order
+        coachIdle(&model->coach);            // ② håll idle när stilla
+    }
+
+
 }
 
 
-void updateCoachPosition(float targetX, float targetY, GameModel *model) {
+/*void updateCoachPosition(float targetX, float targetY, GameModel *model) {
     
     //float coachTargetX = targetX - 300;
     //float coachTargetY = targetY - 200;
@@ -150,7 +194,7 @@ void updateCoachPosition(float targetX, float targetY, GameModel *model) {
     }
 
     movePlayerTowards(&model->coach, coachTargetX, coachTargetY, MOVE_SPEED, model);
-}
+}*/
 
 void handle_pass(GameModel* model, int from, int to) {
     Player* fromPlayer = &model->players[from];

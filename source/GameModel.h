@@ -3,6 +3,7 @@
 
 #include <SDL2/SDL.h>
 #include <stdbool.h>
+#include <math.h> 
 
 
 #define PLAYER_COUNT 6
@@ -90,10 +91,13 @@ typedef struct GameModel {
     Ball ball;
     int activePlayer;
 
-
     bool passCompleted;
     bool passInitiated;
     float emptyX, emptyY;
+
+    bool  coachManual;     
+    float coachTargetX;    
+    float coachTargetY;
 } GameModel;
 
 void cleanupModel(struct GameModel* model);

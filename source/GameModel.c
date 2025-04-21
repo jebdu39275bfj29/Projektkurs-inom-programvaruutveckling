@@ -56,6 +56,11 @@ void initializeModel(struct GameModel* model, SDL_Texture* coachTexture)
     model->coachTexture = coachTexture;
     model->coachDetectionRadius = 60.0f;
 
+    model->coachManual = false;
+    model->coachTargetX = model->coach.x;
+    model->coachTargetY = model->coach.y;
+
+
 
     int order[PLAYER_COUNT] = {4, 1, 3, 5, 2, 0}; 
     for (int i = 0; i < PLAYER_COUNT; i++) {

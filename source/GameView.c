@@ -90,6 +90,27 @@ void renderGame(SDL_Renderer* renderer, SDL_Texture* playerTexture, SDL_Texture*
 
     }
 
+    //Rita CIRKELN runt coachen (Hörselavstånd)
+    // Aktivera blandningsläge för alfakanaler (genomskinlighet)
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+
+    // Ljusare grön nyans och mer genomskinlighet
+    SDL_SetRenderDrawColor(renderer, 144, 238, 144, 60);
+
+    // Mittpunkt för cirkeln (coachens centrum)
+    int circleCx = (int)(model->coach.x + PLAYER_SIZE / 2);
+    int circleCy = (int)(model->coach.y + PLAYER_SIZE / 2);
+    int r = (int)model->coachDetectionRadius;
+
+    // Fyll cirkeln via pixel-loop
+    for (int dy = -r; dy <= r; dy++) {
+        int dxMax = (int)sqrtf((float)(r*r - dy*dy));
+        for (int dx = -dxMax; dx <= dxMax; dx++) {
+            SDL_RenderDrawPoint(renderer, circleCx + dx, circleCy + dy);
+        }
+    }
+
+
     // Rita coach-bilden
     if (model->coachTexture) {
         Player* c = &model->coach;
@@ -207,68 +228,50 @@ void renderGame(SDL_Renderer* renderer, SDL_Texture* playerTexture, SDL_Texture*
     };
 
         SDL_RenderCopy(renderer, model->ball.texture, &ballSrc, &ballDst);
-        // --- Fylld riktningstriangel framför coachen ---
-            float angleRad = model->coach.angle * M_PI / 180.0f;
-            float size = 34.0f;
-
-            int cx = (int)(model->coach.x + PLAYER_SIZE / 2);
-            int cy = (int)(model->coach.y + PLAYER_SIZE / 2);
-
-        // Spets
-            int tipX = cx + cosf(angleRad) * size;
-            int tipY = cy + sinf(angleRad) * size;
-
-        // Basens två hörn
-            float sideAngle = angleRad + M_PI / 2.0f;
-            int base1X = cx + cosf(angleRad) * (size / 2.5f) + cosf(sideAngle) * (size / 2.5f);
-            int base1Y = cy + sinf(angleRad) * (size / 2.5f) + sinf(sideAngle) * (size / 2.5f);
-
-            int base2X = cx + cosf(angleRad) * (size / 2.5f) - cosf(sideAngle) * (size / 2.5f);
-            int base2Y = cy + sinf(angleRad) * (size / 2.5f) - sinf(sideAngle) * (size / 2.5f);
-
-        // Fyll triangeln manuellt (med linjer mellan punkterna)
-            SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255); // gul
-            for (int i = 0; i <= 100; ++i) {
-                float t = i / 100.0f;
-                int x1 = (int)(base1X + t * (tipX - base1X));
-                int y1 = (int)(base1Y + t * (tipY - base1Y));
-                int x2 = (int)(base2X + t * (tipX - base2X));
-                int y2 = (int)(base2Y + t * (tipY - base2Y));
-                SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
-            }
-
-        // --- NYTT: Rita cirkeln runt coachen ---
-        /*int cx = (int)(model->coach.x + PLAYER_SIZE / 2);
-        int cy = (int)(model->coach.y + PLAYER_SIZE / 2);
-        int r = (int)model->coachDetectionRadius;
-        
-        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // Röd, lite transparens
-        for (int angle = 0; angle < 360; angle += 2) {
-            float rad = angle * M_PI / 180.0f;
-            int x = cx + (int)(cosf(rad) * r);
-            int y = cy + (int)(sinf(rad) * r);
-            SDL_RenderDrawPoint(renderer, x, y);
-        }*/
 
 
-        // Aktivera blandningsläge för alfakanaler (genomskinlighet)
-        SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+    //Coachens syn‑sektor
+    const float  fovTotalRad  = 100.0f * M_PI / 180.0f;   //100°
+    const float  fovHalfRad   = 0.5f * fovTotalRad;
+    const float  visionLength = model->coachDetectionRadius * 5.0f; //25 m
 
-        // Välj en ljusare grön nyans och mer genomskinlighet
-        SDL_SetRenderDrawColor(renderer, 144, 238, 144, 60);
+    /* Coachens mittpunkt + riktningsvinkel */
+    float forwardRad = model->coach.angle * M_PI / 180.0f;
+    int   apexX      = (int)(model->coach.x + PLAYER_SIZE / 2);
+    int   apexY      = (int)(model->coach.y + PLAYER_SIZE / 2);
 
-        // Mittpunkt för cirkeln (coachens centrum)
-        int circleCx = (int)(model->coach.x + PLAYER_SIZE / 2);
-        int circleCy = (int)(model->coach.y + PLAYER_SIZE / 2);
-        int r = (int)model->coachDetectionRadius;
+    /* Aktivera alfa‑blending */
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 
-        // Fyll cirkeln via pixel-loop
-        for (int dy = -r; dy <= r; dy++) {
-            int dxMax = (int)sqrtf((float)(r*r - dy*dy));
-            for (int dx = -dxMax; dx <= dxMax; dx++) {
-                SDL_RenderDrawPoint(renderer, circleCx + dx, circleCy + dy);
-            }
+    //Sektor: radiellt utåt i 1‑px steg               
+    int   stepsRad = (int)visionLength;
+    float maxAlpha = 60.0f;                 
+    for (int rStep = 0; rStep < stepsRad; ++rStep) {
+
+        float  currLen = (float)rStep;
+        float  nextLen = currLen + 1.0f;
+
+        /* Kvadratisk fade: (1 - (r/R)^2) */
+        float  t     = currLen / visionLength;          // 0 … 1
+        float  fade  = sqrtf( t );                      // svagt nära, starkare ute
+        Uint8  alpha   = (Uint8)(maxAlpha * fade);
+
+        // Mjuk gul‑grön
+        SDL_SetRenderDrawColor(renderer, 220, 230, 170, alpha);
+
+        for (float a = -fovHalfRad; a <= fovHalfRad; a += (M_PI / 180.0f)) {
+
+            float ca = cosf(forwardRad + a);
+            float sa = sinf(forwardRad + a);
+
+            int x1 = (int)(apexX + ca * currLen);
+            int y1 = (int)(apexY + sa * currLen);
+            int x2 = (int)(apexX + ca * nextLen);
+            int y2 = (int)(apexY + sa * nextLen);
+
+            SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
         }
+    }
 
         // Coachens mittpunkt
         float coachCenterX = model->coach.x + PLAYER_SIZE / 2.0f;

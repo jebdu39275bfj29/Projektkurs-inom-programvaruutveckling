@@ -122,13 +122,13 @@ void updatePassingLogic(GameModel* model) {
         model->passOrder[PLAYER_COUNT - 1] = temp;
 
         
-        for (int i = 2; i < PLAYER_COUNT; i++) {
+       /* for (int i = 2; i < PLAYER_COUNT; i++) {
             int current = model->passOrder[i];
             int next = model->passOrder[(i + 1) % PLAYER_COUNT];
             model->players[current].targetX = model->players[next].originalX;
             model->players[current].targetY = model->players[next].originalY;
             model->players[current].state = RUN;
-        }
+        }*/
         model->passInitiated = false;
         model->passCompleted = false;
 

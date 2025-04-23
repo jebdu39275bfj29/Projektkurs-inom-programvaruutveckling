@@ -41,6 +41,7 @@ GameTextures loadAllTextures(SDL_Renderer* renderer) {
     textures.grassTexture = loadTexture(renderer, "resources/Pitch.png");
     textures.coachTexture = loadTexture(renderer, "resources/Coach.png");
     textures.ballTexture   = loadTexture(renderer, "resources/Ball.png");
+    textures.triangleTexture = loadTexture(renderer, "resources/Triangle.png");
     return textures;
 }
 
@@ -358,5 +359,49 @@ void renderGame(SDL_Renderer* renderer, SDL_Texture* playerTexture, SDL_Texture*
     SDL_RenderDrawLines(renderer, triangleOutline, 4);
     SDL_RenderDrawRect(renderer, &backButton);
     
+    SDL_RenderPresent(renderer);
+}
+
+
+void renderTriangleScene(SDL_Renderer* renderer, GameModel* model, SDL_Texture* background) {
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_RenderClear(renderer);
+
+    SDL_Rect dst = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
+    SDL_RenderCopy(renderer, background, NULL, &dst);
+
+    // Rita knappar
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); // röd triangel
+    for (int y = 10; y <= 30; ++y) {
+        for (int x = WINDOW_WIDTH - 60; x <= WINDOW_WIDTH - 30; ++x) {
+            int dx1 = -15, dy1 = 20;
+            int dx2 = 15, dy2 = 20;
+            int dx = x - (WINDOW_WIDTH - 45);
+            int dy = y - 10;
+
+            float s = (float)(dx * dy2 - dy * dx2) / (dx1 * dy2 - dy1 * dx2);
+            float t = (float)(dx * dy1 - dy * dx1) / (dx2 * dy1 - dy2 * dx1);
+
+            if (s >= 0 && t >= 0 && (s + t) <= 1) {
+                SDL_RenderDrawPoint(renderer, x, y);
+            }
+        }
+    }
+
+    SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255); // blå rektangel
+    SDL_Rect backButton = {WINDOW_WIDTH - 120, 10, 40, 20};
+    SDL_RenderFillRect(renderer, &backButton);
+
+    // Vit kantlinje
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    SDL_Point triangleOutline[4] = {
+        {WINDOW_WIDTH - 45, 10},
+        {WINDOW_WIDTH - 60, 30},
+        {WINDOW_WIDTH - 30, 30},
+        {WINDOW_WIDTH - 45, 10}
+    };
+    SDL_RenderDrawLines(renderer, triangleOutline, 4);
+    SDL_RenderDrawRect(renderer, &backButton);
+
     SDL_RenderPresent(renderer);
 }

@@ -110,8 +110,7 @@ int startGameLoop() {
             renderGame(renderer, textures.playerTexture, textures.grassTexture, &model);
         }
         else if (model.currentPage == PAGE_EMPTY) {
-            SDL_SetRenderDrawColor(renderer, 30, 30, 30, 255); // mörkgrå bakgrund
-            SDL_RenderClear(renderer);
+            renderTriangleScene(renderer, &model, textures.triangleTexture);
 
             // Rita knappar ändå
             SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
@@ -126,7 +125,7 @@ int startGameLoop() {
             SDL_Rect backButton = {WINDOW_WIDTH - 120, 10, 40, 20};
             SDL_RenderDrawRect(renderer, &backButton);
 
-            SDL_RenderPresent(renderer);
+            //SDL_RenderPresent(renderer);
         }
 
         SDL_Delay(16);
@@ -314,3 +313,5 @@ void update_players(Player players[PLAYER_COUNT]) {
         }
     }
 }
+
+

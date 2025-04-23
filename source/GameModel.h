@@ -18,6 +18,7 @@
 #define MAX_PLAYERS PLAYER_COUNT 
 #define COACH_SPEED 1.5f
 #define M_PI 3.14159265358979323846
+#define PLAYER_COUNT_TRIANGLE 4
 
 typedef enum {
     IDLE = 0,
@@ -105,6 +106,12 @@ typedef struct GameModel {
     float coachTargetY;
 
     PageState currentPage;
+
+    Player trianglePlayers[PLAYER_COUNT_TRIANGLE];
+    int trianglePassOrder[PLAYER_COUNT_TRIANGLE];
+    int triangleStep;
+    bool trianglePassInitiated;
+    bool trianglePassCompleted;
 } GameModel;
 
 void cleanupModel(struct GameModel* model);

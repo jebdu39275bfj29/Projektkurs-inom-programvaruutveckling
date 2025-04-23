@@ -363,7 +363,7 @@ void renderGame(SDL_Renderer* renderer, SDL_Texture* playerTexture, SDL_Texture*
 }
 
 
-void renderTriangleScene(SDL_Renderer* renderer, GameModel* model, SDL_Texture* background) {
+void renderTriangleScene(SDL_Renderer* renderer, GameModel* model, SDL_Texture* playerTexture, SDL_Texture* background) {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
 
@@ -402,6 +402,42 @@ void renderTriangleScene(SDL_Renderer* renderer, GameModel* model, SDL_Texture* 
     };
     SDL_RenderDrawLines(renderer, triangleOutline, 4);
     SDL_RenderDrawRect(renderer, &backButton);
+
+
+    // Rita de fyra triangel-spelarna
+    const int frameHeights = 89;
+    const int animationFrameWidths[ANIMATION_COUNT] = { 48, 50, 40, 67, 50, 44 };
+    const int spriteSheetRowMap[ANIMATION_COUNT] = { 0, 1, 2, 3, 4, 5 };
+
+    for (int i = 0; i < 4; i++) {
+        Player* p = &model->trianglePlayers[i];
+        int rowIndex = spriteSheetRowMap[p->animationState];
+        int frameW = animationFrameWidths[p->animationState];
+        int frameH = frameHeights;
+
+        SDL_Rect src = {
+            p->frame * frameW,
+            rowIndex * frameH,
+            frameW,
+            frameH
+        };
+
+        SDL_Rect dst = {
+            (int)p->x,
+            (int)p->y,
+            PLAYER_SIZE,
+            PLAYER_SIZE
+        };
+
+        SDL_Point center = { PLAYER_SIZE / 2, PLAYER_SIZE / 2 };
+
+        SDL_RendererFlip flip = SDL_FLIP_NONE;
+        if (p->angle >= 90 && p->angle <= 270) {
+            flip = SDL_FLIP_HORIZONTAL;
+        }
+
+        SDL_RenderCopyEx(renderer, playerTexture, &src, &dst, 0, &center, flip);
+    }
 
     SDL_RenderPresent(renderer);
 }

@@ -20,7 +20,6 @@ void initializeModel(struct GameModel* model, SDL_Texture* coachTexture)
     model->grass.width = 780;
     model->grass.height = 580;
     model->grass.texture = NULL;
-    model->currentPage = PAGE_MAIN;
 
 
     int offsetX = 10; 
@@ -60,6 +59,63 @@ void initializeModel(struct GameModel* model, SDL_Texture* coachTexture)
     model->coachManual = false;
     model->coachTargetX = model->coach.x;
     model->coachTargetY = model->coach.y;
+
+
+    int centerX = WINDOW_WIDTH / 2;
+    int topY = 60;
+    int bottomY = 400;
+
+    model->trianglePlayers[0] = (Player){ // nedre vänster
+        .x = 140,
+        .y = 420,
+        .state = IDLE,
+        .hasBall = 1,
+        .angle = 0,
+        .animationState = IDLE,
+        .frame = 0,
+        .lastFrameTime = SDL_GetTicks()
+    };
+
+    model->trianglePlayers[1] = (Player){ // nedre höger
+        .x = 560,
+        .y = 420,
+        .state = IDLE,
+        .hasBall = 0,
+        .angle = 0,
+        .animationState = IDLE,
+        .frame = 0,
+        .lastFrameTime = SDL_GetTicks()
+    };
+
+    model->trianglePlayers[2] = (Player){ // övre spets
+        .x = 380,
+        .y = 100,
+        .state = IDLE,
+        .hasBall = 0,
+        .angle = 0,
+        .animationState = IDLE,
+        .frame = 0,
+        .lastFrameTime = SDL_GetTicks()
+    };
+
+    model->trianglePlayers[3] = (Player){ // springaren (startar vid nedre vänster)
+        .x = 140,
+        .y = 420,
+        .state = RUN,
+        .hasBall = 0,
+        .angle = 0,
+        .animationState = RUN,
+        .frame = 0,
+        .lastFrameTime = SDL_GetTicks()
+    };
+
+
+    // Passordning: springaren -> punkt1 -> punkt2 -> punkt3
+    model->trianglePassOrder[0] = 0; // vänster spets
+    model->trianglePassOrder[1] = 1; // höger spets
+    model->trianglePassOrder[2] = 2; // övre spets
+    model->trianglePassOrder[3] = 3; // bottenmitten
+    model->triangleStep = 0;
 
 
 

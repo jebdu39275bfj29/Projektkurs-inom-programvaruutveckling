@@ -110,7 +110,8 @@ int startGameLoop() {
             renderGame(renderer, textures.playerTexture, textures.grassTexture, &model);
         }
         else if (model.currentPage == PAGE_EMPTY) {
-            renderTriangleScene(renderer, &model, textures.triangleTexture);
+            updateTriangleLogic(&model);
+            renderTriangleScene(renderer, &model, textures.playerTexture, textures.triangleTexture);
 
             // Rita knappar ändå
             SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
@@ -314,4 +315,24 @@ void update_players(Player players[PLAYER_COUNT]) {
     }
 }
 
+
+void updateTriangleLogic(GameModel* model) {
+    int currentStep = model->triangleStep;
+    int from = model->trianglePassOrder[currentStep % 4];
+    int to   = model->trianglePassOrder[(currentStep + 1) % 4];
+
+    Player* fromPlayer = &model->trianglePlayers[from];
+    Player* toPlayer = &model->trianglePlayers[to];
+
+    movePlayerTowards(fromPlayer, toPlayer->x, toPlayer->y, MOVE_SPEED, NULL);
+
+    if (fabs(fromPlayer->x - toPlayer->x) < THRESHOLD &&
+        fabs(fromPlayer->y - toPlayer->y) < THRESHOLD) {
+
+        fromPlayer->hasBall = 0;
+        toPlayer->hasBall = 1;
+
+        model->triangleStep++;
+    }
+}
 

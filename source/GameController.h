@@ -13,4 +13,5 @@ void updatePassingLogic(GameModel* model);
 void handle_pass(GameModel* model, int from, int to);
 void update_ball(Ball* ball, Player players[], GameModel* model);
 void update_players(Player players[]);
+void updateTriangleLogic(GameModel* model);
 #endif

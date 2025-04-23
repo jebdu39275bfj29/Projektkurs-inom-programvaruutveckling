@@ -76,6 +76,11 @@ typedef struct {
     SDL_Texture *texture;
 } Grass;
 
+typedef enum {
+    PAGE_MAIN,
+    PAGE_EMPTY
+} PageState;
+
 typedef struct GameModel {
     Player players[PLAYER_COUNT];
     Player coach;
@@ -98,6 +103,8 @@ typedef struct GameModel {
     bool  coachManual;     
     float coachTargetX;    
     float coachTargetY;
+
+    PageState currentPage;
 } GameModel;
 
 void cleanupModel(struct GameModel* model);

@@ -318,6 +318,45 @@ void renderGame(SDL_Renderer* renderer, SDL_Texture* playerTexture, SDL_Texture*
                 SDL_FreeSurface(textSurface);
             }
         }
+
+    // Fyll triangel med röd färg
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); // röd
+    SDL_Point triangle[3] = {
+        {WINDOW_WIDTH - 60, 10},
+        {WINDOW_WIDTH - 30, 10},
+        {WINDOW_WIDTH - 45, 30}
+    };
+    for (int y = 10; y <= 30; ++y) {
+        for (int x = WINDOW_WIDTH - 60; x <= WINDOW_WIDTH - 30; ++x) {
+            // enkel punkt-i-triangel-test (Barycentrisk metod vore bättre, men detta räcker!)
+            int dx1 = triangle[1].x - triangle[0].x, dy1 = triangle[1].y - triangle[0].y;
+            int dx2 = triangle[2].x - triangle[0].x, dy2 = triangle[2].y - triangle[0].y;
+            int dx = x - triangle[0].x, dy = y - triangle[0].y;
+
+            float s = (float)(dx * dy2 - dy * dx2) / (dx1 * dy2 - dy1 * dx2);
+            float t = (float)(dx * dy1 - dy * dx1) / (dx2 * dy1 - dy2 * dx1);
+
+            if (s >= 0 && t >= 0 && (s + t) <= 1) {
+                SDL_RenderDrawPoint(renderer, x, y);
+            }
+        }
+    }
+
+    // Fyll rektangel med blå färg
+    SDL_Rect backButton = {WINDOW_WIDTH - 120, 10, 40, 20};
+    SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255); // blå
+    SDL_RenderFillRect(renderer, &backButton);
+
+    // Vit kantlinje runt triangel och rektangel
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); 
+    SDL_Point triangleOutline[4] = {
+        {WINDOW_WIDTH - 60, 10},
+        {WINDOW_WIDTH - 30, 10},
+        {WINDOW_WIDTH - 45, 30},
+        {WINDOW_WIDTH - 60, 10}
+    };
+    SDL_RenderDrawLines(renderer, triangleOutline, 4);
+    SDL_RenderDrawRect(renderer, &backButton);
     
     SDL_RenderPresent(renderer);
 }

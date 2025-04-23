@@ -20,6 +20,7 @@ void initializeModel(struct GameModel* model, SDL_Texture* coachTexture)
     model->grass.width = 780;
     model->grass.height = 580;
     model->grass.texture = NULL;
+    model->currentPage = PAGE_MAIN;
 
 
     int offsetX = 10; 

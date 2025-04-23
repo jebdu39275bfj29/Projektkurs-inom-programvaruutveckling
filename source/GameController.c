@@ -27,13 +27,38 @@ static bool handleEvents(GameModel* model)
         if (event.type == SDL_MOUSEBUTTONDOWN &&
             event.button.button == SDL_BUTTON_LEFT) {
 
-            model->coachTargetX = (float)event.button.x - PLAYER_SIZE/2.0f;
-            model->coachTargetY = (float)event.button.y - PLAYER_SIZE/2.0f;
-            model->coachManual  = true;
+            int mx = event.button.x;
+            int my = event.button.y;
+
+            bool clickedButton = false;
+
+            // Triangelknapp: gå till tom sida
+            if (mx >= WINDOW_WIDTH - 60 && mx <= WINDOW_WIDTH - 30 && my >= 10 && my <= 30) {
+                if (model->currentPage != PAGE_EMPTY) {
+                    model->currentPage = PAGE_EMPTY;
+                }
+                clickedButton = true;
+            }
+
+            // Rektangelknapp: gå tillbaka
+            else if (mx >= WINDOW_WIDTH - 120 && mx <= WINDOW_WIDTH - 80 && my >= 10 && my <= 30) {
+                if (model->currentPage != PAGE_MAIN) {
+                    model->currentPage = PAGE_MAIN;
+                }
+                clickedButton = true;
+            }
+
+            // Endast trigga coach om man INTE tryckt på knapp
+            if (!clickedButton && model->currentPage == PAGE_MAIN) {
+                model->coachTargetX = (float)mx - PLAYER_SIZE / 2.0f;
+                model->coachTargetY = (float)my - PLAYER_SIZE / 2.0f;
+                model->coachManual = true;
+            }
         }
     }
     return true;
 }
+
 
 
 int startGameLoop() {
@@ -78,10 +103,32 @@ int startGameLoop() {
     while (running) {
         running = handleEvents(&model);
 
-        updatePassingLogic(&model);
-        update_players(model.players);
-        update_ball(&model.ball, model.players, &model);
-        renderGame(renderer, textures.playerTexture, textures.grassTexture, &model);
+        if (model.currentPage == PAGE_MAIN) {
+            updatePassingLogic(&model);
+            update_players(model.players);
+            update_ball(&model.ball, model.players, &model);
+            renderGame(renderer, textures.playerTexture, textures.grassTexture, &model);
+        }
+        else if (model.currentPage == PAGE_EMPTY) {
+            SDL_SetRenderDrawColor(renderer, 30, 30, 30, 255); // mörkgrå bakgrund
+            SDL_RenderClear(renderer);
+
+            // Rita knappar ändå
+            SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+            SDL_Point triangle[4] = {
+                {WINDOW_WIDTH - 60, 10},
+                {WINDOW_WIDTH - 30, 10},
+                {WINDOW_WIDTH - 45, 30},
+                {WINDOW_WIDTH - 60, 10}
+            };
+            SDL_RenderDrawLines(renderer, triangle, 4);
+
+            SDL_Rect backButton = {WINDOW_WIDTH - 120, 10, 40, 20};
+            SDL_RenderDrawRect(renderer, &backButton);
+
+            SDL_RenderPresent(renderer);
+        }
+
         SDL_Delay(16);
     }
 
@@ -122,7 +169,7 @@ void updatePassingLogic(GameModel* model) {
         model->passOrder[PLAYER_COUNT - 1] = temp;
 
         
-       /* for (int i = 2; i < PLAYER_COUNT; i++) {
+       /*for (int i = 2; i < PLAYER_COUNT; i++) {
             int current = model->passOrder[i];
             int next = model->passOrder[(i + 1) % PLAYER_COUNT];
             model->players[current].targetX = model->players[next].originalX;
@@ -144,9 +191,9 @@ void updatePassingLogic(GameModel* model) {
         float dy = model->coachTargetY - model->coach.y;
         float dist = sqrtf(dx*dx + dy*dy);
 
-        if (dist < 1.0f) {                   // ”framme”
+        if (dist < 1.0f) {                
             model->coachManual = false;
-            coachIdle(&model->coach);        // ① sätt IDLE & frame=0
+            coachIdle(&model->coach);        //sätt IDLE
         } else {
             movePlayerTowards(&model->coach,
                             model->coachTargetX,
@@ -155,8 +202,8 @@ void updatePassingLogic(GameModel* model) {
                             model);
         }
     }
-    else {                                   // ingen aktiv order
-        coachIdle(&model->coach);            // ② håll idle när stilla
+    else {                            
+        coachIdle(&model->coach);           
     }
 
 

@@ -439,5 +439,43 @@ void renderTriangleScene(SDL_Renderer* renderer, GameModel* model, SDL_Texture* 
         SDL_RenderCopyEx(renderer, playerTexture, &src, &dst, 0, &center, flip);
     }
 
+
+    // Rita boll som följer den springande spelaren
+    for (int i = 0; i < 4; ++i) {
+        Player* p = &model->trianglePlayers[i];
+        if (p->hasBall) {
+            float rad = p->angle * M_PI / 180.0f;
+            float offsetX = cos(rad) * 20;
+            float offsetY = sin(rad) * 20;
+
+            model->ball.x = p->x + PLAYER_SIZE / 2 + offsetX - 16;
+            model->ball.y = p->y + PLAYER_SIZE / 2 + offsetY;
+
+            Uint32 now = SDL_GetTicks();
+            if (now - model->ball.lastFrameTime > FRAME_DELAY) {
+                model->ball.frame = (model->ball.frame + 1) % 7;
+                model->ball.lastFrameTime = now;
+            }
+
+            SDL_Rect ballSrc = {
+                model->ball.frame * 72,
+                0,
+                72,
+                72
+            };
+
+            SDL_Rect ballDst = {
+                (int)model->ball.x,
+                (int)model->ball.y,
+                32,
+                32
+            };
+
+            SDL_RenderCopy(renderer, model->ball.texture, &ballSrc, &ballDst);
+            break;  
+        }
+    }
+
+
     SDL_RenderPresent(renderer);
 }

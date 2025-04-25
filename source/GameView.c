@@ -363,8 +363,7 @@ void renderGame(SDL_Renderer* renderer, SDL_Texture* playerTexture, SDL_Texture*
 }
 
 
-void 
-(SDL_Renderer* renderer, GameModel* model, SDL_Texture* playerTexture, SDL_Texture* background) {
+void renderTriangleScene(SDL_Renderer* renderer, GameModel* model, SDL_Texture* playerTexture, SDL_Texture* background) {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
 

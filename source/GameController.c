@@ -6,14 +6,13 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-
 static void coachIdle(Player* coach){
-        if (coach->animationState != IDLE) {
-            coach->animationState = IDLE;
-            coach->frame          = 0;          // första bilden i idle‑raden
-            coach->lastFrameTime  = SDL_GetTicks();
-        }
+    if (coach->animationState != IDLE) {
+        coach->animationState = IDLE;
+        coach->frame          = 0;          // första bilden i idle‑raden
+        coach->lastFrameTime  = SDL_GetTicks();
     }
+}
 
 
 static bool handleEvents(GameModel* model)
@@ -54,6 +53,14 @@ static bool handleEvents(GameModel* model)
                 model->coachTargetY = (float)my - PLAYER_SIZE / 2.0f;
                 model->coachManual = true;
             }
+
+            // Triangel-coachen
+            if (!clickedButton && model->currentPage == PAGE_EMPTY) {
+                model->triangleCoachManual = true;
+                model->triangleCoachTargetX = (float)mx - PLAYER_SIZE / 2.0f;
+                model->triangleCoachTargetY = (float)my - PLAYER_SIZE / 2.0f;
+            }
+
         }
     }
     return true;
@@ -334,5 +341,33 @@ void updateTriangleLogic(GameModel* model) {
 
         model->triangleStep++;
     }
+
+    updateTriangleCoach(model);
+    
 }
 
+void updateTriangleCoach(GameModel* model) {
+    if (!model->triangleCoachManual) return;
+
+    float dx = model->triangleCoachTargetX - model->triangleCoach.x;
+    float dy = model->triangleCoachTargetY - model->triangleCoach.y;
+    float distance = sqrtf(dx * dx + dy * dy);
+
+    float speed = 2.0f;
+    if (distance > speed) {
+        model->triangleCoach.x += speed * dx / distance;
+        model->triangleCoach.y += speed * dy / distance;
+
+        model->triangleCoach.angle = atan2f(dy, dx) * 180.0f / M_PI;
+        if (model->triangleCoach.angle < 0) model->triangleCoach.angle += 360;
+
+        model->triangleCoach.animationState = RUN;
+    } else {
+        model->triangleCoach.x = model->triangleCoachTargetX;
+        model->triangleCoach.y = model->triangleCoachTargetY;
+
+        model->triangleCoach.animationState = IDLE;
+        model->triangleCoach.frame = 0; // reset to first IDLE frame
+        model->triangleCoach.lastFrameTime = SDL_GetTicks(); // optional, to sync
+    }
+}

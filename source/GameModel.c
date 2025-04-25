@@ -15,6 +15,7 @@ void cleanupModel(struct GameModel* model) {
 
 void initializeModel(struct GameModel* model, SDL_Texture* coachTexture)
  {
+    memset(model, 0, sizeof(GameModel));  // nollställer ALLT
     model->grass.x = 10;
     model->grass.y = 10;
     model->grass.width = 780;
@@ -110,6 +111,16 @@ void initializeModel(struct GameModel* model, SDL_Texture* coachTexture)
         .lastFrameTime = SDL_GetTicks()
     };
 
+    model->triangleCoach = (Player){
+        .x = WINDOW_WIDTH / 2,
+        .y = 220,
+        .angle = 0,
+        .state = IDLE,
+        .animationState = IDLE,
+        .frame = 0,
+        .lastFrameTime = SDL_GetTicks()
+    };
+
 
     // Passordning: springaren -> punkt1 -> punkt2 -> punkt3
     model->trianglePassOrder[0] = 0; // vänster spets
@@ -118,6 +129,9 @@ void initializeModel(struct GameModel* model, SDL_Texture* coachTexture)
     model->trianglePassOrder[3] = 3; // bottenmitten
     model->triangleStep = 0;
 
+    model->triangleCoachManual = false;
+    model->triangleCoachTargetX = model->triangleCoach.x;
+    model->triangleCoachTargetY = model->triangleCoach.y;
 
 
     int order[PLAYER_COUNT] = {4, 1, 3, 5, 2, 0}; 

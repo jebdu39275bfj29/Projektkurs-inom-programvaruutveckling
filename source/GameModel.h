@@ -112,6 +112,12 @@ typedef struct GameModel {
     int triangleStep;
     bool trianglePassInitiated;
     bool trianglePassCompleted;
+
+    Player triangleCoach;
+    bool triangleCoachManual;
+    float triangleCoachTargetX;
+    float triangleCoachTargetY;
+
 } GameModel;
 
 void cleanupModel(struct GameModel* model);

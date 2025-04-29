@@ -1,6 +1,8 @@
 #include "GameModel.h"
 #include <math.h>
 
+Player squarePlayers[SQUARE_PLAYER_COUNT];
+
 const int animationFrameCounts[ANIMATION_COUNT] = {
     4, 8, 10, 6, 8, 9
 };
@@ -12,9 +14,68 @@ void cleanupModel(struct GameModel* model) {
     }
 }
 
+void initSquarePlayers() {
+    int gap = 400;
 
-void initializeModel(struct GameModel* model, SDL_Texture* coachTexture)
+    // Justera dessa värden för att flytta positionen
+    int shiftX = -40;  // flytta vänster
+    int shiftY = -50;   // flytta uppåt
 
+    // Center point of the square
+    int centerX = WINDOW_WIDTH / 2 + shiftX;
+    int centerY = WINDOW_HEIGHT / 2 + shiftY;
+
+    // Offset to spread players around the center
+    int offset = gap / 2;
+
+    // Upper left
+    squarePlayers[0] = (Player){
+        .x = centerX - offset,
+        .y = centerY - offset,
+        .angle = 0,
+        .state = IDLE,
+        .animationState = IDLE,
+        .frame = 0,
+        .lastFrameTime = SDL_GetTicks()
+    };
+
+    // Lower left
+    squarePlayers[1] = (Player){
+        .x = centerX - offset,
+        .y = centerY + offset,
+        .angle = 0,
+        .state = IDLE,
+        .animationState = IDLE,
+        .frame = 0,
+        .lastFrameTime = SDL_GetTicks()
+    };
+
+    // Upper right
+    squarePlayers[2] = (Player){
+        .x = centerX + offset,
+        .y = centerY - offset,
+        .angle = 0,
+        .state = IDLE,
+        .animationState = IDLE,
+        .frame = 0,
+        .lastFrameTime = SDL_GetTicks()
+    };
+
+    // Lower right
+    squarePlayers[3] = (Player){
+        .x = centerX + offset,
+        .y = centerY + offset,
+        .angle = 0,
+        .state = IDLE,
+        .animationState = IDLE,
+        .frame = 0,
+        .lastFrameTime = SDL_GetTicks()
+    };
+}
+
+
+
+void initializeModel(struct GameModel* model, SDL_Texture* coachTexture, SDL_Texture* ballTexture)
  {
     memset(model, 0, sizeof(GameModel));  // nollställer ALLT
     model->grass.x = 10;
@@ -23,6 +84,8 @@ void initializeModel(struct GameModel* model, SDL_Texture* coachTexture)
     model->grass.height = 580;
     model->grass.texture = NULL;
     model->currentPage = PAGE_MAIN;
+
+    initSquarePlayers();
 
     int offsetX = 10;
     int offsetY = 10;
@@ -157,7 +220,49 @@ void initializeModel(struct GameModel* model, SDL_Texture* coachTexture)
 
     model->step = 0;
     model->lastPassTime = SDL_GetTicks();
+
+
+    model->squarePassIndex = 0;
+    model->lastSquarePassTime = SDL_GetTicks();
+    model->squareBall.texture = ballTexture;
+    model->squareBall.frame = 0;
+    model->squareBall.lastFrameTime = SDL_GetTicks();
+    model->squareBall.state = ATTACHED;
+    model->squareBall.attachedPlayer = 0;
+
+
+    model->squareBallX = squarePlayers[0].x + PLAYER_SIZE / 2;
+    model->squareBallY = squarePlayers[0].y + PLAYER_SIZE / 2;
+
+
+    // Placera bollens målpositioner (fyra hörn)
+    model->squareBallTargets[0][0] = squarePlayers[0].x + PLAYER_SIZE/2;
+    model->squareBallTargets[0][1] = squarePlayers[0].y + PLAYER_SIZE/2;
+    model->squareBallTargets[1][0] = squarePlayers[1].x + PLAYER_SIZE/2;
+    model->squareBallTargets[1][1] = squarePlayers[1].y + PLAYER_SIZE/2;
+    model->squareBallTargets[2][0] = squarePlayers[2].x + PLAYER_SIZE/2;
+    model->squareBallTargets[2][1] = squarePlayers[2].y + PLAYER_SIZE/2;
+    model->squareBallTargets[3][0] = squarePlayers[3].x + PLAYER_SIZE/2;
+    model->squareBallTargets[3][1] = squarePlayers[3].y + PLAYER_SIZE/2;
+
+    // Starta på första hörnet
+    model->squareBallTargetIndex = 1;
+    model->squareBallX = model->squareBallTargets[0][0];
+    model->squareBallY = model->squareBallTargets[0][1];
+
+    // Beräkna initial hastighet
+    float deltaX = model->squareBallTargets[1][0] - model->squareBallX;
+    float deltaY = model->squareBallTargets[1][1] - model->squareBallY;
+    float length = sqrtf(deltaX * deltaX + deltaY * deltaY);
+    if (length != 0) {
+        model->squareBallVelX = (deltaX / length) * 3.0f;
+        model->squareBallVelY = (deltaY / length) * 3.0f;
+    }
+
+
 }
+
+
 
 void movePlayerTowards(Player *player, float targetX, float targetY, float speed, struct GameModel* model) {
     float deltaX = targetX - player->x;
@@ -186,3 +291,29 @@ void movePlayerTowards(Player *player, float targetX, float targetY, float speed
         player->lastFrameTime = SDL_GetTicks();
     }
 }
+
+
+void updateSquareBall(GameModel* model) {
+    model->squareBallX += model->squareBallVelX;
+    model->squareBallY += model->squareBallVelY;
+
+    // Kolla om bollen är tillräckligt nära målet
+    float dx = model->squareBallTargets[model->squareBallTargetIndex][0] - model->squareBallX;
+    float dy = model->squareBallTargets[model->squareBallTargetIndex][1] - model->squareBallY;
+    if (fabsf(dx) < 5.0f && fabsf(dy) < 5.0f) {
+        // Gå vidare till nästa hörn
+        model->squareBallTargetIndex = (model->squareBallTargetIndex + 1) % 4;
+        float targetX = model->squareBallTargets[model->squareBallTargetIndex][0];
+        float targetY = model->squareBallTargets[model->squareBallTargetIndex][1];
+
+        // Räkna ut ny hastighetsvektor
+        float deltaX = targetX - model->squareBallX;
+        float deltaY = targetY - model->squareBallY;
+        float length = sqrtf(deltaX * deltaX + deltaY * deltaY);
+        if (length != 0) {
+            model->squareBallVelX = (deltaX / length) * 3.0f; // justera hastigheten här (px per frame)
+            model->squareBallVelY = (deltaY / length) * 3.0f;
+        }
+    }
+}
+

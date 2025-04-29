@@ -19,6 +19,8 @@
 #define COACH_SPEED 4.5f
 #define M_PI 3.14159265358979323846
 #define PLAYER_COUNT_TRIANGLE 4
+#define SQUARE_PLAYER_COUNT 4
+
 
 typedef enum {
     IDLE = 0,
@@ -88,7 +90,8 @@ typedef struct {
 
 typedef enum {
     PAGE_MAIN,
-    PAGE_EMPTY
+    PAGE_EMPTY,
+    PAGE_SQUARE
 } PageState;
 
 typedef struct GameModel {
@@ -131,10 +134,25 @@ typedef struct GameModel {
     float triangleCoachTargetX;
     float triangleCoachTargetY;
 
+    Ball squareBall;
+    int squarePassIndex;
+    Uint32 lastSquarePassTime;
+    float squareBallX;
+    float squareBallY;
+    float squareBallVelX;
+    float squareBallVelY;
+    float squareBallTargets[4][2];  // 4 positioner (x, y)
+    int squareBallTargetIndex;   
+    int squareCurrentTarget;  
+    float squareBallTargetX;
+    float squareBallTargetY;
+
 } GameModel;
 
+extern Player squarePlayers[SQUARE_PLAYER_COUNT];
 void cleanupModel(struct GameModel* model);
-void initializeModel(struct GameModel* model, SDL_Texture* coachTexture);
+void initializeModel(struct GameModel* model, SDL_Texture* coachTexture, SDL_Texture* ballTexture);
 void movePlayerTowards(Player *player, float targetX, float targetY, float speed, struct GameModel* model);
+void updateSquareBall(struct GameModel* model);
 
 #endif

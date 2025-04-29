@@ -362,6 +362,17 @@ void renderGame(SDL_Renderer* renderer, SDL_Texture* playerTexture, SDL_Texture*
             }
         }
 
+
+    // Fyll kvadrat med rosa färg
+    SDL_SetRenderDrawColor(renderer, 255, 105, 180, 255); // rosa (Hot Pink)
+    SDL_Rect squareButton = {WINDOW_WIDTH - 180, 10, 30, 20};
+    SDL_RenderFillRect(renderer, &squareButton);
+
+    // Vit kantlinje runt kvadraten
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    SDL_RenderDrawRect(renderer, &squareButton);
+
+
     // Fyll triangel med röd färg
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); // röd
     SDL_Point triangle[3] = {
@@ -445,6 +456,15 @@ void renderTriangleScene(SDL_Renderer* renderer, GameModel* model, SDL_Texture* 
     SDL_RenderDrawLines(renderer, triangleOutline, 4);
     SDL_RenderDrawRect(renderer, &backButton);
 
+      // Fyll kvadrat med rosa färg
+    SDL_SetRenderDrawColor(renderer, 255, 105, 180, 255); // rosa (Hot Pink)
+    SDL_Rect squareButton = {WINDOW_WIDTH - 180, 10, 30, 20};
+    SDL_RenderFillRect(renderer, &squareButton);
+
+    // Vit kantlinje runt kvadraten
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    SDL_RenderDrawRect(renderer, &squareButton);
+
 
     // Rita de fyra triangel-spelarna
     const int frameHeights = 89;
@@ -518,7 +538,7 @@ void renderTriangleScene(SDL_Renderer* renderer, GameModel* model, SDL_Texture* 
         }
     }
 
-            // TRIANGELCOACHENS HÖRSELCIRKEL
+    // TRIANGELCOACHENS HÖRSELCIRKEL
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
     SDL_SetRenderDrawColor(renderer, 144, 238, 144, 60);
 
@@ -609,7 +629,7 @@ void renderTriangleScene(SDL_Renderer* renderer, GameModel* model, SDL_Texture* 
 
     }
 
-        // TRIANGELCOACHENS AVSTÅNDSPARAMETRAR
+    // TRIANGELCOACHENS AVSTÅNDSPARAMETRAR
     float triangleCoachCenterX = model->triangleCoach.x + PLAYER_SIZE / 2.0f;
     float triangleCoachCenterY = model->triangleCoach.y + PLAYER_SIZE / 2.0f;
 
@@ -648,3 +668,140 @@ void renderTriangleScene(SDL_Renderer* renderer, GameModel* model, SDL_Texture* 
 
     SDL_RenderPresent(renderer);
 }
+
+
+void renderSquareScene(SDL_Renderer* renderer, struct GameModel* model, SDL_Texture* grassTexture, SDL_Texture* playerTexture)
+ {
+    // Bakgrundsfärg (mörkgrå)
+    SDL_SetRenderDrawColor(renderer, 30, 30, 30, 255);
+    SDL_RenderClear(renderer);
+
+    // Rita gräsplanen (samma som i renderGame)
+    if (grassTexture) {
+        SDL_Rect grassRect = {
+            model->grass.x,
+            model->grass.y,
+            model->grass.width,
+            model->grass.height
+        };
+        SDL_RenderCopy(renderer, grassTexture, NULL, &grassRect);
+    }
+
+    // 🎯 RITA TILLBAKA-KNAPP (blå rektangel)
+    SDL_Rect backButton = {WINDOW_WIDTH - 120, 10, 40, 20};
+    SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255); // blå
+    SDL_RenderFillRect(renderer, &backButton);
+
+    // Fyll triangel med röd färg
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); // röd
+    SDL_Point triangle[3] = {
+        {WINDOW_WIDTH - 60, 10},
+        {WINDOW_WIDTH - 30, 10},
+        {WINDOW_WIDTH - 45, 30}
+    };
+    for (int y = 10; y <= 30; ++y) {
+        for (int x = WINDOW_WIDTH - 60; x <= WINDOW_WIDTH - 30; ++x) {
+            // enkel punkt-i-triangel-test (Barycentrisk metod vore bättre, men detta räcker!)
+            int dx1 = triangle[1].x - triangle[0].x, dy1 = triangle[1].y - triangle[0].y;
+            int dx2 = triangle[2].x - triangle[0].x, dy2 = triangle[2].y - triangle[0].y;
+            int dx = x - triangle[0].x, dy = y - triangle[0].y;
+
+            float s = (float)(dx * dy2 - dy * dx2) / (dx1 * dy2 - dy1 * dx2);
+            float t = (float)(dx * dy1 - dy * dx1) / (dx2 * dy1 - dy2 * dx1);
+
+            if (s >= 0 && t >= 0 && (s + t) <= 1) {
+                SDL_RenderDrawPoint(renderer, x, y);
+            }
+        }
+    }
+
+
+    // RITA KVADRATKNAPP (rosa)
+    SDL_Rect squareButton = {WINDOW_WIDTH - 180, 10, 30, 20};
+    SDL_SetRenderDrawColor(renderer, 255, 105, 180, 255); // rosa (Hot Pink)
+    SDL_RenderFillRect(renderer, &squareButton);
+
+    // 🧾 VITA KANTLINJER
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+
+    // Triangelkontur
+    SDL_Point triangleOutline[4] = {
+        {WINDOW_WIDTH - 60, 10},
+        {WINDOW_WIDTH - 30, 10},
+        {WINDOW_WIDTH - 45, 30},
+        {WINDOW_WIDTH - 60, 10}
+    };
+    SDL_RenderDrawLines(renderer, triangleOutline, 4);
+
+    // Rektangelkontur
+    SDL_RenderDrawRect(renderer, &backButton);
+
+    // Kvadratkontur
+    SDL_RenderDrawRect(renderer, &squareButton);
+
+
+    const int frameHeights = 89;
+    const int animationFrameWidths[ANIMATION_COUNT] = { 48, 50, 40, 67, 50, 44 };
+    const int spriteSheetRowMap[ANIMATION_COUNT] = { 0, 1, 2, 3, 4, 5 };
+
+    for (int i = 0; i < SQUARE_PLAYER_COUNT; ++i) {
+        Player* p = &squarePlayers[i];
+        int rowIndex = spriteSheetRowMap[p->animationState];
+        int frameW = animationFrameWidths[p->animationState];
+        int frameH = frameHeights;
+
+        SDL_Rect src = {
+            p->frame * frameW,
+            rowIndex * frameH,
+            frameW,
+            frameH
+        };
+
+        SDL_Rect dst = {
+            (int)p->x,
+            (int)p->y,
+            PLAYER_SIZE,
+            PLAYER_SIZE
+        };
+
+        SDL_Point center = { PLAYER_SIZE / 2, PLAYER_SIZE / 2 };
+
+        SDL_RendererFlip flip = SDL_FLIP_NONE;
+        if (p->angle >= 90 && p->angle <= 270) {
+            flip = SDL_FLIP_HORIZONTAL;
+        }
+
+        SDL_RenderCopyEx(renderer, playerTexture, &src, &dst, 0, &center, flip);
+    }
+
+
+    const int ballFrameSize = 72;
+    const int ballRowIndex = 0; 
+    Uint32 now = SDL_GetTicks();
+
+    // Uppdatera animationen (byter frame)
+    if (now - model->squareBall.lastFrameTime > FRAME_DELAY) {
+        model->squareBall.frame = (model->squareBall.frame + 1) % 7;
+        model->squareBall.lastFrameTime = now;
+    }
+
+
+    // Rita rätt frame från spritesheeten
+    SDL_Rect src = {
+        model->squareBall.frame * ballFrameSize,
+        ballRowIndex * ballFrameSize,
+        ballFrameSize,
+        ballFrameSize
+    };
+
+    SDL_Rect dst = {
+        (int)model->squareBallX,
+        (int)model->squareBallY,
+        32, 32
+    };
+
+    SDL_RenderCopy(renderer, model->squareBall.texture, &src, &dst);
+
+    SDL_RenderPresent(renderer);
+}
+

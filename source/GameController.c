@@ -47,6 +47,14 @@ static bool handleEvents(GameModel* model)
                 clickedButton = true;
             }
 
+            // Kvadratknapp: gå till ny sida
+            else if (mx >= WINDOW_WIDTH - 180 && mx <= WINDOW_WIDTH - 150 && my >= 10 && my <= 30) {
+                if (model->currentPage != PAGE_SQUARE) {
+                    model->currentPage = PAGE_SQUARE;
+                }
+                clickedButton = true;
+            }
+
             // Endast trigga coach om man INTE tryckt på knapp
             if (!clickedButton && model->currentPage == PAGE_MAIN) {
                 model->coachTargetX = (float)mx - PLAYER_SIZE / 2.0f;
@@ -99,7 +107,7 @@ int startGameLoop() {
     }
 
     GameModel model;
-    initializeModel(&model, textures.coachTexture);
+    initializeModel(&model, textures.coachTexture, textures.ballTexture);
     model.balls[0].texture = textures.ballTexture;
     model.balls[1].texture = textures.ballTexture;
     model.activePlayer = model.passOrder[0];
@@ -144,6 +152,12 @@ int startGameLoop() {
             SDL_RenderDrawRect(renderer, &backButton);
 
             //SDL_RenderPresent(renderer);
+        }
+
+        else if (model.currentPage == PAGE_SQUARE) {
+            updateSquareBall(&model);
+            updateSquareLogic(&model);
+            renderSquareScene(renderer, &model, textures.grassTexture, textures.playerTexture);
         }
 
         SDL_Delay(16);
@@ -422,5 +436,34 @@ void updateTriangleCoach(GameModel* model) {
         model->triangleCoach.animationState = IDLE;
         model->triangleCoach.frame = 0; // reset to first IDLE frame
         model->triangleCoach.lastFrameTime = SDL_GetTicks(); // optional, to sync
+    }
+}
+
+
+void updateSquareLogic(GameModel* model) {
+    model->squareBallX += model->squareBallVelX;
+    model->squareBallY += model->squareBallVelY;
+
+    float dx = model->squareBallTargets[model->squareBallTargetIndex][0] - model->squareBallX;
+    float dy = model->squareBallTargets[model->squareBallTargetIndex][1] - model->squareBallY;
+
+    if (fabsf(dx) < 5.0f && fabsf(dy) < 5.0f) {
+        // Snäpp fast bollen exakt till målet
+        model->squareBallX = model->squareBallTargets[model->squareBallTargetIndex][0];
+        model->squareBallY = model->squareBallTargets[model->squareBallTargetIndex][1];
+
+        // Gå vidare till nästa hörn
+        model->squareBallTargetIndex = (model->squareBallTargetIndex + 1) % 4;
+        float targetX = model->squareBallTargets[model->squareBallTargetIndex][0];
+        float targetY = model->squareBallTargets[model->squareBallTargetIndex][1];
+
+        // Räkna ut ny hastighetsvektor från nya exakta positionen
+        float deltaX = targetX - model->squareBallX;
+        float deltaY = targetY - model->squareBallY;
+        float length = sqrtf(deltaX * deltaX + deltaY * deltaY);
+        if (length != 0) {
+            model->squareBallVelX = (deltaX / length) * 3.0f;
+            model->squareBallVelY = (deltaY / length) * 3.0f;
+        }
     }
 }

@@ -103,8 +103,8 @@ int startGameLoop() {
     model.balls[0].texture = textures.ballTexture;
     model.balls[1].texture = textures.ballTexture;
     model.activePlayer = model.passOrder[0];
-    //model.passInitiated = true;
-    //model.passCompleted = true;
+    model.passInitiated = true;
+    model.passCompleted = true;
     //handle_pass(&model, model.passOrder[0], model.passOrder[1]);
     model.balls[0].attachedPlayer = model.passOrder[0];
     model.balls[1].attachedPlayer = model.passOrder[3];
@@ -274,7 +274,10 @@ void updatePassingLogic(GameModel* model) {
 
                 from->state = RUN;
                 to->state = IDLE;
+    
             }
+            model->passInitiated = true;
+            model->passCompleted = false;
         }
     }
 

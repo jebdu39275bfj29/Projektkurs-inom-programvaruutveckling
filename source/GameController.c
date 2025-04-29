@@ -60,7 +60,6 @@ static bool handleEvents(GameModel* model)
 }
 
 
-
 int startGameLoop() {
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         SDL_Log("SDL_Init Error: %s\n", SDL_GetError());
@@ -94,19 +93,30 @@ int startGameLoop() {
 
     GameModel model;
     initializeModel(&model, textures.coachTexture);
-    model.ball.texture = textures.ballTexture;
-    //model.activePlayer = model.passOrder[0];
-    model.passInitiated = true;
+    model.balls[0].texture = textures.ballTexture;
+    model.balls[1].texture = textures.ballTexture;
+    model.activePlayer = model.passOrder[0];
+    //model.passInitiated = true;
+    //model.passCompleted = true;
+    //handle_pass(&model, model.passOrder[0], model.passOrder[1]);
+    model.balls[0].attachedPlayer = model.passOrder[0];
+    model.balls[1].attachedPlayer = model.passOrder[3];
+    model.balls[0].state = ATTACHED;
+    model.balls[1].state = ATTACHED;
+    model.players[model.passOrder[0]].hasBall = true;
+    model.players[model.passOrder[3]].hasBall = true;
+
     bool running = true;
-    model.passCompleted = true;
-    handle_pass(&model, model.passOrder[0], model.passOrder[1]);
     while (running) {
         running = handleEvents(&model);
 
         if (model.currentPage == PAGE_MAIN) {
             updatePassingLogic(&model);
             update_players(model.players);
-            update_ball(&model.ball, model.players, &model);
+            for (int i = 0; i < 2; i++) {
+                update_ball(&model.balls[i], model.players, &model);
+            }            
+            //update_ball(&model.ball, model.players, &model);
             renderGame(renderer, textures.playerTexture, textures.grassTexture, &model);
         }
         else if (model.currentPage == PAGE_EMPTY) {
@@ -135,7 +145,7 @@ int startGameLoop() {
     SDL_DestroyTexture(textures.playerTexture);
     SDL_DestroyTexture(textures.grassTexture);
     SDL_DestroyTexture(textures.coachTexture);
-    SDL_DestroyTexture(model.ball.texture);
+    SDL_DestroyTexture(model.balls[0].texture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     IMG_Quit();
@@ -145,7 +155,7 @@ int startGameLoop() {
 }
 
 
-void updatePassingLogic(GameModel* model) {
+/*void updatePassingLogic(GameModel* model) {
     int from = model->passOrder[0];
     int to = model->passOrder[1];
 
@@ -158,6 +168,7 @@ void updatePassingLogic(GameModel* model) {
     if (fabs(fromPlayer->x - toPlayer->x) < THRESHOLD &&
         fabs(fromPlayer->y - toPlayer->y) < THRESHOLD) {
 
+        //handle_pass(model, from, to);
         fromPlayer->hasBall = 0;
         toPlayer->hasBall = 1;
 
@@ -168,14 +179,21 @@ void updatePassingLogic(GameModel* model) {
         model->passOrder[PLAYER_COUNT - 1] = temp;
 
         
-       /*for (int i = 2; i < PLAYER_COUNT; i++) {
+       for (int i = 2; i < PLAYER_COUNT; i++) {
             int current = model->passOrder[i];
             int next = model->passOrder[(i + 1) % PLAYER_COUNT];
             model->players[current].targetX = model->players[next].originalX;
             model->players[current].targetY = model->players[next].originalY;
-            model->players[current].state = RUN;
-        }*/
-        model->passInitiated = false;
+
+            PlayerBehavior behavior = model->players[current].behavior;
+            if(behavior == BEHAVIOR_CHAIN_MOVE || behavior == BEHAVIOR_ALWAYS_MOVE){
+
+                model->players[current].state = RUN;
+                model->players[current].shouldMove = true;
+
+            }
+        }
+        model->passInitiated = true;
         model->passCompleted = false;
 
     }
@@ -204,9 +222,7 @@ void updatePassingLogic(GameModel* model) {
     else {                            
         coachIdle(&model->coach);           
     }
-
-
-}
+}*/
 
 
 /*void updateCoachPosition(float targetX, float targetY, GameModel *model) {
@@ -242,26 +258,113 @@ void updatePassingLogic(GameModel* model) {
     movePlayerTowards(&model->coach, coachTargetX, coachTargetY, MOVE_SPEED, model);
 }*/
 
-void handle_pass(GameModel* model, int from, int to) {
+/*void handle_pass(GameModel* model, int from, int to) {
     Player* fromPlayer = &model->players[from];
     Player* toPlayer = &model->players[to];
     
     fromPlayer->hasBall = 0;
-    model->ball.state = IN_FLIGHT;
-    model->ball.attachedPlayer = -1;
+    model->balls[0].state = IN_FLIGHT;
+    model->balls[0].attachedPlayer = -1;
 
     float dx = toPlayer->x - fromPlayer->x;
     float dy = toPlayer->y - fromPlayer->y;
     float dist = sqrtf(dx * dx + dy * dy);
     
-    model->ball.velX = BALL_SPEED * dx / dist;
-    model->ball.velY = BALL_SPEED * dy / dist;
+    model->balls[0].velX = BALL_SPEED * dx / dist;
+    model->balls[0].velY = BALL_SPEED * dy / dist;
 
     fromPlayer->targetX = toPlayer->x;
     fromPlayer->targetY = toPlayer->y;
     fromPlayer->state = RUN;
+}*/
+
+
+void updatePassingLogic(GameModel* model) {
+    for (int b = 0; b < 2; b++) {
+        Ball* ball = &model->balls[b];
+        int currentPlayer = ball->attachedPlayer;
+
+        if (ball->state == ATTACHED && currentPlayer >= 0) {
+
+        
+            int currentIndex = -1;
+            for (int i = 0; i < PLAYER_COUNT; i++) {
+                if (model->passOrder[i] == currentPlayer) {
+                    currentIndex = i;
+                    break;
+                }
+            }
+            if (currentIndex == -1) continue;
+
+            int nextIndex = (currentIndex + 1) % PLAYER_COUNT;
+            int nextPlayer = model->passOrder[nextIndex];
+
+            Player* from = &model->players[currentPlayer];
+            Player* to   = &model->players[nextPlayer];
+
+            float targetX = model->cornerX[nextIndex];
+            float targetY = model->cornerY[nextIndex];
+
+            movePlayerTowards(from, targetX, targetY, MOVE_SPEED, model);
+
+            if (fabs(from->x - targetX) < THRESHOLD &&
+                fabs(from->y - targetY) < THRESHOLD) {
+
+
+                from->hasBall = 0;
+                to->hasBall = 1;
+                ball->attachedPlayer = nextPlayer;
+
+                from->x = targetX;
+                from->y = targetY;
+
+                from->state = RUN;
+                to->state = IDLE;
+            }
+        }
+    }
+
+    if (model->coachManual) {
+        float dx = model->coachTargetX - model->coach.x;
+        float dy = model->coachTargetY - model->coach.y;
+        float dist = sqrtf(dx*dx + dy*dy);
+        if (dist < 1.0f) {
+            model->coachManual = false;
+            coachIdle(&model->coach);
+        } else {
+            movePlayerTowards(&model->coach,
+                              model->coachTargetX,
+                              model->coachTargetY,
+                              COACH_SPEED,
+                              model);
+        }
+    } else {
+        coachIdle(&model->coach);
+    }
 }
 
+
+void handle_pass(GameModel* model, int ballIndex, int from, int to) {
+    Ball* ball = &model->balls[ballIndex];
+    Player* src = &model->players[from];
+    Player* dst = &model->players[to];
+
+    src->hasBall = 0;
+    dst->hasBall = 1;
+    ball->state  = IN_FLIGHT;
+    ball->attachedPlayer = -1;
+
+    float dx = dst->x - src->x;
+    float dy = dst->y - src->y;
+    float dist = sqrtf(dx*dx + dy*dy);
+
+    ball->velX = BALL_SPEED * dx / dist;
+    ball->velY = BALL_SPEED * dy / dist;
+
+    src->targetX = dst->x;
+    src->targetY = dst->y;
+    src->state = RUN;
+}
 
 void update_ball(Ball* ball, Player players[], GameModel* model) {
     if (ball->state == IN_FLIGHT) {
@@ -300,7 +403,7 @@ void update_ball(Ball* ball, Player players[], GameModel* model) {
     }
 }
 
-void update_players(Player players[PLAYER_COUNT]) {
+/*void update_players(Player players[PLAYER_COUNT]) {
     for (int i = 0; i < PLAYER_COUNT; i++) {
         if (players[i].state == RUN) {
             movePlayerTowards(&players[i], players[i].targetX, players[i].targetY, MOVE_SPEED, NULL);
@@ -312,6 +415,53 @@ void update_players(Player players[PLAYER_COUNT]) {
             }
         }
     }
+}*/
+
+/*void update_players(Player players[PLAYER_COUNT]){
+    for(int i = 0; i < PLAYER_COUNT; i++){
+        Player* p = &players[i];
+
+        switch (p->behavior){
+            case BEHAVIOR_IDLE:
+            continue;
+
+            case BEHAVIOR_WAIT_FOR_BALL:
+            if(!p->hasBall) continue;
+            p->state = RUN;
+            break;
+
+            case BEHAVIOR_CHAIN_MOVE:
+            break;
+
+            case BEHAVIOR_ALWAYS_MOVE:
+            break;
+        }
+
+        if(p->state == RUN){
+            movePlayerTowards(p, p->targetX, p->targetY, MOVE_SPEED, NULL);
+            if(fabs(p->x - p->targetX) < THRESHOLD &&
+               fabs(p->y - p->targetY) < THRESHOLD){
+                p->x = p->targetX;
+                p->y = p->targetY;
+                p->state = IDLE;
+                p->shouldMove = false;
+            }
+        }
+    }
+}*/
+
+void update_players(Player players[PLAYER_COUNT]) {
+    for (int i = 0; i < PLAYER_COUNT; i++) {
+        Player* p = &players[i];
+        if (p->state == RUN) {
+            movePlayerTowards(p, p->targetX, p->targetY, MOVE_SPEED, NULL);
+            if (fabs(p->x - p->targetX) < THRESHOLD &&
+                fabs(p->y - p->targetY) < THRESHOLD) {
+                p->x = p->targetX;
+                p->y = p->targetY;
+                p->state = IDLE;
+                p->shouldMove = false;
+            }
+        }
+    }
 }
-
-

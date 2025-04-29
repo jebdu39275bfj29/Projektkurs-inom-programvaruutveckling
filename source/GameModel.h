@@ -12,11 +12,11 @@
 #define WINDOW_HEIGHT 600
 #define FRAME_DELAY 100
 #define BALL_SPEED 5.0f
-#define PLAYER_SPEED 1.5f
-#define MOVE_SPEED 1.5f     
-#define THRESHOLD 5.0f  
+#define PLAYER_SPEED 20.5f
+#define MOVE_SPEED 20.5f     
+#define THRESHOLD 10.0f  
 #define MAX_PLAYERS PLAYER_COUNT 
-#define COACH_SPEED 1.5f
+#define COACH_SPEED 4.5f
 #define M_PI 3.14159265358979323846
 
 typedef enum {
@@ -52,6 +52,13 @@ typedef struct {
     float velY;               // Hastighet Y
 } Ball;
 
+typedef enum {
+    BEHAVIOR_IDLE,
+    BEHAVIOR_WAIT_FOR_BALL,
+    BEHAVIOR_CHAIN_MOVE,
+    BEHAVIOR_ALWAYS_MOVE
+} PlayerBehavior;
+
 typedef struct {
     float x, y;
     int frame;
@@ -67,6 +74,8 @@ typedef struct {
     float startX;
     float startY;
     int hasBall;
+    bool shouldMove;
+    PlayerBehavior behavior;
 } Player;
 
 typedef struct {
@@ -89,11 +98,15 @@ typedef struct GameModel {
     int coachFrame;
     Uint32 coachLastFrameTime;
     int passOrder[PLAYER_COUNT];
+    int passIndex[2];
     float coachDetectionRadius;
     int step;
+    float cornerX[PLAYER_COUNT];
+    float cornerY[PLAYER_COUNT];
     Uint32 lastPassTime;
     Grass grass;
-    Ball ball;
+    Ball balls[2];
+    //Ball ball; 
     int activePlayer;
 
     bool passCompleted;

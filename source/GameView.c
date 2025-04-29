@@ -41,7 +41,7 @@ GameTextures loadAllTextures(SDL_Renderer* renderer) {
     textures.grassTexture = loadTexture(renderer, "resources/Pitch.png");
     textures.coachTexture = loadTexture(renderer, "resources/Coach.png");
     textures.ballTexture   = loadTexture(renderer, "resources/Ball.png");
-    textures.triangleTexture = loadTexture(renderer, "resources/Triangle.png");
+    //textures.triangleTexture = loadTexture(renderer, "resources/Triangle.png");
     return textures;
 }
 
@@ -158,7 +158,7 @@ void renderGame(SDL_Renderer* renderer, SDL_Texture* playerTexture, SDL_Texture*
     }
 
     // Rita boll
-    if (model->ball.texture) {
+    /*if (model->ball.texture) {
         SDL_Rect dst;
         dst.x = (int)(model->ball.x);
         dst.y = (int)(model->ball.y);
@@ -176,10 +176,10 @@ void renderGame(SDL_Renderer* renderer, SDL_Texture* playerTexture, SDL_Texture*
                          model->ball.angle,
                          &center,
                          SDL_FLIP_NONE);
-    }
+    }*/
 
     
-    Player* carrier = &model->players[model->passOrder[model->step % PLAYER_COUNT]];
+    /*Player* carrier = &model->players[model->passOrder[model->step % PLAYER_COUNT]];
 
     float rad = carrier->angle * M_PI / 180.0f;
     float offsetX = cos(rad) * 20;
@@ -228,8 +228,50 @@ void renderGame(SDL_Renderer* renderer, SDL_Texture* playerTexture, SDL_Texture*
         32
     };
 
-        SDL_RenderCopy(renderer, model->ball.texture, &ballSrc, &ballDst);
+    SDL_RenderCopy(renderer, model->ball.texture, &ballSrc, &ballDst);*/
 
+    const int ballFrameSize = 72;
+    const int ballRowIndex = 0;
+    Uint32 now = SDL_GetTicks();
+
+    for (int bi = 0; bi < 2; bi++) {
+        Ball* ball = &model->balls[bi];
+        Player* carrier = &model->players[ball->attachedPlayer];
+
+        float rad = carrier->angle * M_PI / 180.0f;
+        float offsetX = cosf(rad) * 20.0f;
+        float offsetY = sinf(rad) * 20.0f;
+
+        bool isLeftSide   = carrier->x < (WINDOW_WIDTH / 2);
+        bool isMovingUp   = carrier->angle > 180 && carrier->angle < 360;
+        bool isRightSide  = carrier->x > (WINDOW_WIDTH / 2);
+        bool isMovingDown = carrier->angle > 60  && carrier->angle < 120;
+
+        float additionalYOffset = 0.0f;
+        if (isLeftSide  && isMovingUp)   additionalYOffset =  26.0f;
+        if (isRightSide && isMovingDown) additionalYOffset = -26.0f;
+
+        ball->x = carrier->x + PLAYER_SIZE/2 + offsetX - 16;
+        ball->y = carrier->y + PLAYER_SIZE/2 + offsetY + additionalYOffset;
+
+        if (now - ball->lastFrameTime > FRAME_DELAY) {
+            ball->frame = (ball->frame + 1) % 7;
+            ball->lastFrameTime = now;
+        }
+
+        SDL_Rect src = {
+            ball->frame * ballFrameSize,
+            ballRowIndex * ballFrameSize,
+            ballFrameSize,
+            ballFrameSize
+        };
+        SDL_Rect dst = {
+            (int)ball->x,
+            (int)ball->y,
+            32, 32
+        };
+        SDL_RenderCopy(renderer, ball->texture, &src, &dst);
+    }
 
     //Coachens syn‑sektor
     const float  fovTotalRad  = 100.0f * M_PI / 180.0f;   //100°

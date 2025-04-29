@@ -10,7 +10,8 @@ struct GameModel;
 int startGameLoop();
 void updatePassingLogic(GameModel* model);
 //void updateCoachPosition(float targetX, float targetY, GameModel *model);
-void handle_pass(GameModel* model, int from, int to);
+//void handle_pass(GameModel* model, int from, int to);
+void handle_pass(GameModel* model, int ballIndex, int from, int to);
 void update_ball(Ball* ball, Player players[], GameModel* model);
 void update_players(Player players[]);
 #endif

@@ -6,14 +6,13 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-
 static void coachIdle(Player* coach){
-        if (coach->animationState != IDLE) {
-            coach->animationState = IDLE;
-            coach->frame          = 0;          // första bilden i idle‑raden
-            coach->lastFrameTime  = SDL_GetTicks();
-        }
+    if (coach->animationState != IDLE) {
+        coach->animationState = IDLE;
+        coach->frame          = 0;          // första bilden i idle‑raden
+        coach->lastFrameTime  = SDL_GetTicks();
     }
+}
 
 
 static bool handleEvents(GameModel* model)
@@ -54,6 +53,14 @@ static bool handleEvents(GameModel* model)
                 model->coachTargetY = (float)my - PLAYER_SIZE / 2.0f;
                 model->coachManual = true;
             }
+
+            // Triangel-coachen
+            if (!clickedButton && model->currentPage == PAGE_EMPTY) {
+                model->triangleCoachManual = true;
+                model->triangleCoachTargetX = (float)mx - PLAYER_SIZE / 2.0f;
+                model->triangleCoachTargetY = (float)my - PLAYER_SIZE / 2.0f;
+            }
+
         }
     }
     return true;
@@ -120,7 +127,8 @@ int startGameLoop() {
             renderGame(renderer, textures.playerTexture, textures.grassTexture, &model);
         }
         else if (model.currentPage == PAGE_EMPTY) {
-            renderTriangleScene(renderer, &model, textures.triangleTexture);
+            updateTriangleLogic(&model);
+            renderTriangleScene(renderer, &model, textures.playerTexture, textures.triangleTexture);
 
             // Rita knappar ändå
             SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
@@ -222,60 +230,6 @@ int startGameLoop() {
     else {                            
         coachIdle(&model->coach);           
     }
-}*/
-
-
-/*void updateCoachPosition(float targetX, float targetY, GameModel *model) {
-    
-    //float coachTargetX = targetX - 300;
-    //float coachTargetY = targetY - 200;
-
-    float offset = 150.0f;
-    float angle = atan2f(targetY - model->coach.y, targetX - model->coach.x);
-    float coachTargetX = targetX + cosf(angle + M_PI) * offset;
-    float coachTargetY = targetY + sinf(angle + M_PI) * offset;
-
-    
-    coachTargetX = fmax(model->grass.x, fmin(coachTargetX, model->grass.x + model->grass.width));
-    coachTargetY = fmax(model->grass.y, fmin(coachTargetY, model->grass.y + model->grass.height));
-
-    
-    //coachTargetX += 100;
-    //coachTargetY += 100;
-
-    
-    float dx = coachTargetX - model->coach.x;
-    float dy = coachTargetY - model->coach.y;
-    float distance = sqrtf(dx * dx + dy * dy);
-
-    
-    if (distance > 1.0f) {
-        model->coach.animationState = RUN;
-    } else {
-        model->coach.animationState = IDLE;
-    }
-
-    movePlayerTowards(&model->coach, coachTargetX, coachTargetY, MOVE_SPEED, model);
-}*/
-
-/*void handle_pass(GameModel* model, int from, int to) {
-    Player* fromPlayer = &model->players[from];
-    Player* toPlayer = &model->players[to];
-    
-    fromPlayer->hasBall = 0;
-    model->balls[0].state = IN_FLIGHT;
-    model->balls[0].attachedPlayer = -1;
-
-    float dx = toPlayer->x - fromPlayer->x;
-    float dy = toPlayer->y - fromPlayer->y;
-    float dist = sqrtf(dx * dx + dy * dy);
-    
-    model->balls[0].velX = BALL_SPEED * dx / dist;
-    model->balls[0].velY = BALL_SPEED * dy / dist;
-
-    fromPlayer->targetX = toPlayer->x;
-    fromPlayer->targetY = toPlayer->y;
-    fromPlayer->state = RUN;
 }*/
 
 
@@ -403,52 +357,6 @@ void update_ball(Ball* ball, Player players[], GameModel* model) {
     }
 }
 
-/*void update_players(Player players[PLAYER_COUNT]) {
-    for (int i = 0; i < PLAYER_COUNT; i++) {
-        if (players[i].state == RUN) {
-            movePlayerTowards(&players[i], players[i].targetX, players[i].targetY, MOVE_SPEED, NULL);
-            if (fabs(players[i].x - players[i].targetX) < THRESHOLD &&
-                fabs(players[i].y - players[i].targetY) < THRESHOLD) {
-                players[i].x = players[i].targetX;
-                players[i].y = players[i].targetY;
-                players[i].state = IDLE;
-            }
-        }
-    }
-}*/
-
-/*void update_players(Player players[PLAYER_COUNT]){
-    for(int i = 0; i < PLAYER_COUNT; i++){
-        Player* p = &players[i];
-
-        switch (p->behavior){
-            case BEHAVIOR_IDLE:
-            continue;
-
-            case BEHAVIOR_WAIT_FOR_BALL:
-            if(!p->hasBall) continue;
-            p->state = RUN;
-            break;
-
-            case BEHAVIOR_CHAIN_MOVE:
-            break;
-
-            case BEHAVIOR_ALWAYS_MOVE:
-            break;
-        }
-
-        if(p->state == RUN){
-            movePlayerTowards(p, p->targetX, p->targetY, MOVE_SPEED, NULL);
-            if(fabs(p->x - p->targetX) < THRESHOLD &&
-               fabs(p->y - p->targetY) < THRESHOLD){
-                p->x = p->targetX;
-                p->y = p->targetY;
-                p->state = IDLE;
-                p->shouldMove = false;
-            }
-        }
-    }
-}*/
 
 void update_players(Player players[PLAYER_COUNT]) {
     for (int i = 0; i < PLAYER_COUNT; i++) {
@@ -463,5 +371,53 @@ void update_players(Player players[PLAYER_COUNT]) {
                 p->shouldMove = false;
             }
         }
+    }
+}
+void updateTriangleLogic(GameModel* model) {
+    int currentStep = model->triangleStep;
+    int from = model->trianglePassOrder[currentStep % 4];
+    int to   = model->trianglePassOrder[(currentStep + 1) % 4];
+
+    Player* fromPlayer = &model->trianglePlayers[from];
+    Player* toPlayer = &model->trianglePlayers[to];
+
+    movePlayerTowards(fromPlayer, toPlayer->x, toPlayer->y, MOVE_SPEED, NULL);
+
+    if (fabs(fromPlayer->x - toPlayer->x) < THRESHOLD &&
+        fabs(fromPlayer->y - toPlayer->y) < THRESHOLD) {
+
+        fromPlayer->hasBall = 0;
+        toPlayer->hasBall = 1;
+
+        model->triangleStep++;
+    }
+
+    updateTriangleCoach(model);
+    
+}
+
+void updateTriangleCoach(GameModel* model) {
+    if (!model->triangleCoachManual) return;
+
+    float dx = model->triangleCoachTargetX - model->triangleCoach.x;
+    float dy = model->triangleCoachTargetY - model->triangleCoach.y;
+    float distance = sqrtf(dx * dx + dy * dy);
+
+    float speed = 2.0f;
+    if (distance > speed) {
+        model->triangleCoach.x += speed * dx / distance;
+        model->triangleCoach.y += speed * dy / distance;
+
+        model->triangleCoach.angle = atan2f(dy, dx) * 180.0f / M_PI;
+        if (model->triangleCoach.angle < 0) model->triangleCoach.angle += 360;
+
+        model->triangleCoach.animationState = RUN;
+    } else {
+        model->triangleCoach.x = model->triangleCoachTargetX;
+        model->triangleCoach.y = model->triangleCoachTargetY;
+
+        model->triangleCoach.animationState = IDLE;
+        model->triangleCoach.frame = 0; // reset to first IDLE frame
+        model->triangleCoach.lastFrameTime = SDL_GetTicks(); // optional, to sync
     }
 }

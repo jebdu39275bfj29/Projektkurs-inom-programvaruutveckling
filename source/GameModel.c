@@ -14,7 +14,9 @@ void cleanupModel(struct GameModel* model) {
 
 
 void initializeModel(struct GameModel* model, SDL_Texture* coachTexture)
-{
+
+ {
+    memset(model, 0, sizeof(GameModel));  // nollställer ALLT
     model->grass.x = 10;
     model->grass.y = 10;
     model->grass.width = 780;
@@ -48,7 +50,78 @@ void initializeModel(struct GameModel* model, SDL_Texture* coachTexture)
     model->coachTargetX = model->coach.x;
     model->coachTargetY = model->coach.y;
 
-    int order[PLAYER_COUNT] = {4, 1, 3, 5, 2, 0};
+    int order[PLAYER_COUNT] = {4, 1, 3, 5, 2, 0}; 
+
+    int centerX = WINDOW_WIDTH / 2;
+    int topY = 60;
+    int bottomY = 400;
+
+    model->trianglePlayers[0] = (Player){ // nedre vänster
+        .x = 140,
+        .y = 420,
+        .state = IDLE,
+        .hasBall = 1,
+        .angle = 0,
+        .animationState = IDLE,
+        .frame = 0,
+        .lastFrameTime = SDL_GetTicks()
+    };
+
+    model->trianglePlayers[1] = (Player){ // nedre höger
+        .x = 560,
+        .y = 420,
+        .state = IDLE,
+        .hasBall = 0,
+        .angle = 0,
+        .animationState = IDLE,
+        .frame = 0,
+        .lastFrameTime = SDL_GetTicks()
+    };
+
+    model->trianglePlayers[2] = (Player){ // övre spets
+        .x = 380,
+        .y = 100,
+        .state = IDLE,
+        .hasBall = 0,
+        .angle = 0,
+        .animationState = IDLE,
+        .frame = 0,
+        .lastFrameTime = SDL_GetTicks()
+    };
+
+    model->trianglePlayers[3] = (Player){ // springaren (startar vid nedre vänster)
+        .x = 140,
+        .y = 420,
+        .state = RUN,
+        .hasBall = 0,
+        .angle = 0,
+        .animationState = RUN,
+        .frame = 0,
+        .lastFrameTime = SDL_GetTicks()
+    };
+
+    model->triangleCoach = (Player){
+        .x = WINDOW_WIDTH / 2,
+        .y = 220,
+        .angle = 0,
+        .state = IDLE,
+        .animationState = IDLE,
+        .frame = 0,
+        .lastFrameTime = SDL_GetTicks()
+    };
+
+
+    // Passordning: springaren -> punkt1 -> punkt2 -> punkt3
+    model->trianglePassOrder[0] = 0; // vänster spets
+    model->trianglePassOrder[1] = 1; // höger spets
+    model->trianglePassOrder[2] = 2; // övre spets
+    model->trianglePassOrder[3] = 3; // bottenmitten
+    model->triangleStep = 0;
+
+    model->triangleCoachManual = false;
+    model->triangleCoachTargetX = model->triangleCoach.x;
+    model->triangleCoachTargetY = model->triangleCoach.y;
+
     for (int i = 0; i < PLAYER_COUNT; i++) {
         model->passOrder[i] = order[i];
         int index = order[i];

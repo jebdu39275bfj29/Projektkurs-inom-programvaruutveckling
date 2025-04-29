@@ -41,7 +41,7 @@ GameTextures loadAllTextures(SDL_Renderer* renderer) {
     textures.grassTexture = loadTexture(renderer, "resources/Pitch.png");
     textures.coachTexture = loadTexture(renderer, "resources/Coach.png");
     textures.ballTexture   = loadTexture(renderer, "resources/Ball.png");
-    //textures.triangleTexture = loadTexture(renderer, "resources/Triangle.png");
+    textures.triangleTexture = loadTexture(renderer, "resources/Triangle.png");
     return textures;
 }
 
@@ -405,7 +405,7 @@ void renderGame(SDL_Renderer* renderer, SDL_Texture* playerTexture, SDL_Texture*
 }
 
 
-void renderTriangleScene(SDL_Renderer* renderer, GameModel* model, SDL_Texture* background) {
+void renderTriangleScene(SDL_Renderer* renderer, GameModel* model, SDL_Texture* playerTexture, SDL_Texture* background) {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
 
@@ -444,6 +444,207 @@ void renderTriangleScene(SDL_Renderer* renderer, GameModel* model, SDL_Texture* 
     };
     SDL_RenderDrawLines(renderer, triangleOutline, 4);
     SDL_RenderDrawRect(renderer, &backButton);
+
+
+    // Rita de fyra triangel-spelarna
+    const int frameHeights = 89;
+    const int animationFrameWidths[ANIMATION_COUNT] = { 48, 50, 40, 67, 50, 44 };
+    const int spriteSheetRowMap[ANIMATION_COUNT] = { 0, 1, 2, 3, 4, 5 };
+
+    for (int i = 0; i < 4; i++) {
+        Player* p = &model->trianglePlayers[i];
+        int rowIndex = spriteSheetRowMap[p->animationState];
+        int frameW = animationFrameWidths[p->animationState];
+        int frameH = frameHeights;
+
+        SDL_Rect src = {
+            p->frame * frameW,
+            rowIndex * frameH,
+            frameW,
+            frameH
+        };
+
+        SDL_Rect dst = {
+            (int)p->x,
+            (int)p->y,
+            PLAYER_SIZE,
+            PLAYER_SIZE
+        };
+
+        SDL_Point center = { PLAYER_SIZE / 2, PLAYER_SIZE / 2 };
+
+        SDL_RendererFlip flip = SDL_FLIP_NONE;
+        if (p->angle >= 90 && p->angle <= 270) {
+            flip = SDL_FLIP_HORIZONTAL;
+        }
+
+        SDL_RenderCopyEx(renderer, playerTexture, &src, &dst, 0, &center, flip);
+    }
+
+
+    // Rita boll som följer den springande spelaren
+    for (int i = 0; i < 4; ++i) {
+        Player* p = &model->trianglePlayers[i];
+        if (p->hasBall) {
+            float rad = p->angle * M_PI / 180.0f;
+            float offsetX = cos(rad) * 20;
+            float offsetY = sin(rad) * 20;
+
+            model->ball.x = p->x + PLAYER_SIZE / 2 + offsetX - 16;
+            model->ball.y = p->y + PLAYER_SIZE / 2 + offsetY;
+
+            Uint32 now = SDL_GetTicks();
+            if (now - model->ball.lastFrameTime > FRAME_DELAY) {
+                model->ball.frame = (model->ball.frame + 1) % 7;
+                model->ball.lastFrameTime = now;
+            }
+
+            SDL_Rect ballSrc = {
+                model->ball.frame * 72,
+                0,
+                72,
+                72
+            };
+
+            SDL_Rect ballDst = {
+                (int)model->ball.x,
+                (int)model->ball.y,
+                32,
+                32
+            };
+
+            SDL_RenderCopy(renderer, model->ball.texture, &ballSrc, &ballDst);
+            break;  
+        }
+    }
+
+            // TRIANGELCOACHENS HÖRSELCIRKEL
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(renderer, 144, 238, 144, 60);
+
+    int circleCx = (int)(model->triangleCoach.x + PLAYER_SIZE / 2);
+    int circleCy = (int)(model->triangleCoach.y + PLAYER_SIZE / 2);
+    int r = (int)model->coachDetectionRadius;
+
+    for (int dy = -r; dy <= r; dy++) {
+        int dxMax = (int)sqrtf((float)(r*r - dy*dy));
+        for (int dx = -dxMax; dx <= dxMax; dx++) {
+            SDL_RenderDrawPoint(renderer, circleCx + dx, circleCy + dy);
+        }
+    }
+
+    // TRIANGELCOACHENS SYN-SEKTOR
+    const float  fovTotalRad  = 100.0f * M_PI / 180.0f;
+    const float  fovHalfRad   = 0.5f * fovTotalRad;
+    const float  visionLength = model->coachDetectionRadius * 3.0f; //15m
+
+    float forwardRad = model->triangleCoach.angle * M_PI / 180.0f;
+    int   apexX      = (int)(model->triangleCoach.x + PLAYER_SIZE / 2);
+    int   apexY      = (int)(model->triangleCoach.y + PLAYER_SIZE / 2);
+
+    float maxAlpha = 60.0f;
+    for (int rStep = 0; rStep < (int)visionLength; ++rStep) {
+        float currLen = (float)rStep;
+        float nextLen = currLen + 1.0f;
+
+        float t = currLen / visionLength;
+        float fade = sqrtf(t);
+        Uint8 alpha = (Uint8)(maxAlpha * fade);
+
+        SDL_SetRenderDrawColor(renderer, 220, 230, 170, alpha);
+
+        for (float a = -fovHalfRad; a <= fovHalfRad; a += (M_PI / 180.0f)) {
+            float ca = cosf(forwardRad + a);
+            float sa = sinf(forwardRad + a);
+
+            int x1 = (int)(apexX + ca * currLen);
+            int y1 = (int)(apexY + sa * currLen);
+            int x2 = (int)(apexX + ca * nextLen);
+            int y2 = (int)(apexY + sa * nextLen);
+
+            SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
+        }
+    }
+
+    if (playerTexture) {
+        const int frameHeights = 89;
+        const int animationFrameWidths[ANIMATION_COUNT] = { 48, 50, 40, 67, 50, 44 };
+        //const int spriteSheetRowMap[ANIMATION_COUNT] = { 0, 1, 2, 3, 4, 5 };
+
+        int rowIndex = 2;
+        int frameW = animationFrameWidths[model->triangleCoach.animationState];
+        int frameH = frameHeights;
+
+        SDL_Rect src = {
+            model->triangleCoach.frame * frameW,
+            rowIndex * frameH,
+            frameW,
+            frameH
+        };
+
+        SDL_Rect dst = {
+            (int)model->triangleCoach.x,
+            (int)model->triangleCoach.y,
+            PLAYER_SIZE,
+            PLAYER_SIZE
+        };
+
+        SDL_Point center = { PLAYER_SIZE / 2, PLAYER_SIZE / 2 };
+
+        Uint32 now = SDL_GetTicks();
+        if (model->triangleCoach.animationState != IDLE) {
+            Uint32 now = SDL_GetTicks();
+            if (now - model->triangleCoach.lastFrameTime > FRAME_DELAY) {
+                int frameCount = animationFrameCounts[model->triangleCoach.animationState];
+                model->triangleCoach.frame = (model->triangleCoach.frame + 1) % frameCount;
+                model->triangleCoach.lastFrameTime = now;
+            }
+        }
+
+        SDL_RendererFlip flip = SDL_FLIP_NONE;
+        if (model->triangleCoach.angle >= 90 && model->triangleCoach.angle <= 270) {
+            flip = SDL_FLIP_HORIZONTAL;
+        }
+        SDL_RenderCopyEx(renderer, model->coachTexture, &src, &dst, 0.0, &center, flip);
+
+    }
+
+        // TRIANGELCOACHENS AVSTÅNDSPARAMETRAR
+    float triangleCoachCenterX = model->triangleCoach.x + PLAYER_SIZE / 2.0f;
+    float triangleCoachCenterY = model->triangleCoach.y + PLAYER_SIZE / 2.0f;
+
+    float pxToMeter = 5.0f / model->coachDetectionRadius;
+
+    for (int i = 0; i < 4; i++) {
+        float playerCenterX = model->trianglePlayers[i].x + PLAYER_SIZE / 2.0f;
+        float playerCenterY = model->trianglePlayers[i].y + PLAYER_SIZE / 2.0f;
+
+        float dx = playerCenterX - triangleCoachCenterX;
+        float dy = playerCenterY - triangleCoachCenterY;
+        float distPixels = sqrtf(dx * dx + dy * dy);
+        float distMeters = distPixels * pxToMeter;
+
+        char buffer[64];
+        snprintf(buffer, sizeof(buffer), "T%d: %.2f m", i, distMeters);
+
+        SDL_Color white = {255, 255, 255, 255};
+        SDL_Surface* textSurface = TTF_RenderText_Blended(font, buffer, white);
+        if (textSurface) {
+            SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+            if (textTexture) {
+                SDL_Rect textRect;
+                textRect.x = 10;
+                textRect.y = 10 + i * 20;
+                textRect.w = textSurface->w;
+                textRect.h = textSurface->h;
+
+                SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
+                SDL_DestroyTexture(textTexture);
+            }
+            SDL_FreeSurface(textSurface);
+        }
+    }
+
 
     SDL_RenderPresent(renderer);
 }

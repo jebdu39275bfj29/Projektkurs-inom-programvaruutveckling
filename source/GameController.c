@@ -136,7 +136,7 @@ int startGameLoop() {
         }
         else if (model.currentPage == PAGE_EMPTY) {
             updateTriangleLogic(&model);
-            renderTriangleScene(renderer, &model, textures.playerTexture, textures.triangleTexture);
+            renderTriangleScene(renderer, &model, textures.playerTexture, textures.grassTexture);
 
             // Rita knappar ändå
             SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
@@ -441,29 +441,83 @@ void updateTriangleCoach(GameModel* model) {
 
 
 void updateSquareLogic(GameModel* model) {
-    model->squareBallX += model->squareBallVelX;
-    model->squareBallY += model->squareBallVelY;
+    static const int passOrder[4] = {0, 2, 3, 1};
+    static int currentTarget = 0;
+    static bool initialized = false;
 
-    float dx = model->squareBallTargets[model->squareBallTargetIndex][0] - model->squareBallX;
-    float dy = model->squareBallTargets[model->squareBallTargetIndex][1] - model->squareBallY;
+    if (!initialized) {
+        int idx = passOrder[currentTarget];
+        model->squareBallX = squarePlayers[idx].x + PLAYER_SIZE / 2 - 16;
+        model->squareBallY = squarePlayers[idx].y + PLAYER_SIZE / 2 - 16;
+        initialized = true;
+        currentTarget = (currentTarget + 1) % 4;
+    }
 
-    if (fabsf(dx) < 5.0f && fabsf(dy) < 5.0f) {
-        // Snäpp fast bollen exakt till målet
-        model->squareBallX = model->squareBallTargets[model->squareBallTargetIndex][0];
-        model->squareBallY = model->squareBallTargets[model->squareBallTargetIndex][1];
+    int targetIndex = passOrder[currentTarget];
+    float targetX = squarePlayers[targetIndex].x + PLAYER_SIZE / 2 - 16;
+    float targetY = squarePlayers[targetIndex].y + PLAYER_SIZE / 2 - 16;
 
-        // Gå vidare till nästa hörn
-        model->squareBallTargetIndex = (model->squareBallTargetIndex + 1) % 4;
-        float targetX = model->squareBallTargets[model->squareBallTargetIndex][0];
-        float targetY = model->squareBallTargets[model->squareBallTargetIndex][1];
+    float dx = targetX - model->squareBallX;
+    float dy = targetY - model->squareBallY;
+    float distance = sqrtf(dx * dx + dy * dy);
 
-        // Räkna ut ny hastighetsvektor från nya exakta positionen
-        float deltaX = targetX - model->squareBallX;
-        float deltaY = targetY - model->squareBallY;
+    if (distance < 4.0f) {
+        // 1. Starta spring för förra spelaren mot nästa
+        int passerIndex = passOrder[(currentTarget - 1 + 4) % 4];
+        int runnerIndex = passOrder[currentTarget];
+
+        squarePlayers[passerIndex].targetX = model->squareBallX;
+        squarePlayers[passerIndex].targetY = model->squareBallY;
+        squarePlayers[passerIndex].isRunning = true;
+        squarePlayers[passerIndex].animationState = RUN;
+
+        // 2. Nästa mål
+        currentTarget = (currentTarget + 1) % 4;
+        float newTargetX = squarePlayers[passOrder[currentTarget]].x + PLAYER_SIZE / 2 - 16;
+        float newTargetY = squarePlayers[passOrder[currentTarget]].y + PLAYER_SIZE / 2 - 16;
+
+        float deltaX = newTargetX - model->squareBallX;
+        float deltaY = newTargetY - model->squareBallY;
         float length = sqrtf(deltaX * deltaX + deltaY * deltaY);
         if (length != 0) {
             model->squareBallVelX = (deltaX / length) * 3.0f;
             model->squareBallVelY = (deltaY / length) * 3.0f;
         }
+    } else {
+        model->squareBallX += model->squareBallVelX;
+        model->squareBallY += model->squareBallVelY;
     }
+
+    // Bollens animation
+    Uint32 now = SDL_GetTicks();
+    if (now - model->squareBall.lastFrameTime > FRAME_DELAY) {
+        model->squareBall.frame = (model->squareBall.frame + 1) % 7;
+        model->squareBall.lastFrameTime = now;
+    }
+
+    // Uppdatera springande spelare
+    /*float playerSpeed = 3.0f;  // långsammare än bollens 3.0f
+    for (int i = 0; i < SQUARE_PLAYER_COUNT; ++i) {
+        if (squarePlayers[i].isRunning) {
+            float px = squarePlayers[i].x;
+            float py = squarePlayers[i].y;
+            float tx = squarePlayers[i].targetX;
+            float ty = squarePlayers[i].targetY;
+            float dx = tx - px;
+            float dy = ty - py;
+            float dist = sqrtf(dx * dx + dy * dy);
+
+            if (dist < 1.0f) {
+                squarePlayers[i].isRunning = false;
+                squarePlayers[i].state = IDLE;
+                squarePlayers[i].animationState = IDLE;
+                squarePlayers[i].frame = 0;
+            } else {
+                squarePlayers[i].x += playerSpeed * dx / dist;
+                squarePlayers[i].y += playerSpeed * dy / dist;
+                squarePlayers[i].angle = atan2f(dy, dx) * 180.0f / M_PI;
+                if (squarePlayers[i].angle < 0) squarePlayers[i].angle += 360;
+            }
+        }
+    }*/
 }

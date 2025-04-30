@@ -36,7 +36,10 @@ void initSquarePlayers() {
         .state = IDLE,
         .animationState = IDLE,
         .frame = 0,
-        .lastFrameTime = SDL_GetTicks()
+        .lastFrameTime = SDL_GetTicks(),
+        .targetX = 0,
+        .targetY = 0,
+        .isRunning = false
     };
 
     // Lower left
@@ -47,7 +50,10 @@ void initSquarePlayers() {
         .state = IDLE,
         .animationState = IDLE,
         .frame = 0,
-        .lastFrameTime = SDL_GetTicks()
+        .lastFrameTime = SDL_GetTicks(),
+        .targetX = 0,
+        .targetY = 0,
+        .isRunning = false
     };
 
     // Upper right
@@ -58,7 +64,10 @@ void initSquarePlayers() {
         .state = IDLE,
         .animationState = IDLE,
         .frame = 0,
-        .lastFrameTime = SDL_GetTicks()
+        .lastFrameTime = SDL_GetTicks(),
+        .targetX = 0,
+        .targetY = 0,
+        .isRunning = false
     };
 
     // Lower right
@@ -69,7 +78,10 @@ void initSquarePlayers() {
         .state = IDLE,
         .animationState = IDLE,
         .frame = 0,
-        .lastFrameTime = SDL_GetTicks()
+        .lastFrameTime = SDL_GetTicks(),
+        .targetX = 0,
+        .targetY = 0,
+        .isRunning = false
     };
 }
 
@@ -205,7 +217,7 @@ void initializeModel(struct GameModel* model, SDL_Texture* coachTexture, SDL_Tex
     model->balls[0].frame = 0;
     model->balls[0].lastFrameTime = SDL_GetTicks();
     model->balls[0].angle = 0;
-    model->balls[0].texture = NULL;
+    model->balls[0].texture = ballTexture;
     model->players[order[0]].hasBall = 1;
 
     model->balls[1].x = model->players[order[3]].x;
@@ -220,6 +232,15 @@ void initializeModel(struct GameModel* model, SDL_Texture* coachTexture, SDL_Tex
 
     model->step = 0;
     model->lastPassTime = SDL_GetTicks();
+    
+    model->ball.x = model->trianglePlayers[0].x;
+    model->ball.y = model->trianglePlayers[0].y;
+    model->ball.state = ATTACHED;
+    model->ball.attachedPlayer = 0; 
+    model->ball.frame = 0;
+    model->ball.lastFrameTime = SDL_GetTicks();
+    model->ball.angle = 0;
+    model->ball.texture = ballTexture; 
 
 
     model->squarePassIndex = 0;
@@ -235,15 +256,19 @@ void initializeModel(struct GameModel* model, SDL_Texture* coachTexture, SDL_Tex
     model->squareBallY = squarePlayers[0].y + PLAYER_SIZE / 2;
 
 
-    // Placera bollens målpositioner (fyra hörn)
-    model->squareBallTargets[0][0] = squarePlayers[0].x + PLAYER_SIZE/2;
+    // Ny kvadratisk (medurs) ordning:
+    model->squareBallTargets[0][0] = squarePlayers[0].x + PLAYER_SIZE/2; // vänster övre
     model->squareBallTargets[0][1] = squarePlayers[0].y + PLAYER_SIZE/2;
-    model->squareBallTargets[1][0] = squarePlayers[1].x + PLAYER_SIZE/2;
-    model->squareBallTargets[1][1] = squarePlayers[1].y + PLAYER_SIZE/2;
-    model->squareBallTargets[2][0] = squarePlayers[2].x + PLAYER_SIZE/2;
-    model->squareBallTargets[2][1] = squarePlayers[2].y + PLAYER_SIZE/2;
-    model->squareBallTargets[3][0] = squarePlayers[3].x + PLAYER_SIZE/2;
-    model->squareBallTargets[3][1] = squarePlayers[3].y + PLAYER_SIZE/2;
+
+    model->squareBallTargets[1][0] = squarePlayers[2].x + PLAYER_SIZE/2; // höger övre
+    model->squareBallTargets[1][1] = squarePlayers[2].y + PLAYER_SIZE/2;
+
+    model->squareBallTargets[2][0] = squarePlayers[3].x + PLAYER_SIZE/2; // höger nedre
+    model->squareBallTargets[2][1] = squarePlayers[3].y + PLAYER_SIZE/2;
+
+    model->squareBallTargets[3][0] = squarePlayers[1].x + PLAYER_SIZE/2; // vänster nedre
+    model->squareBallTargets[3][1] = squarePlayers[1].y + PLAYER_SIZE/2;
+
 
     // Starta på första hörnet
     model->squareBallTargetIndex = 1;

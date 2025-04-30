@@ -416,12 +416,19 @@ void renderGame(SDL_Renderer* renderer, SDL_Texture* playerTexture, SDL_Texture*
 }
 
 
-void renderTriangleScene(SDL_Renderer* renderer, GameModel* model, SDL_Texture* playerTexture, SDL_Texture* background) {
+void renderTriangleScene(SDL_Renderer* renderer, GameModel* model, SDL_Texture* playerTexture, SDL_Texture* grassTexture)
+{
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
 
-    SDL_Rect dst = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
-    SDL_RenderCopy(renderer, background, NULL, &dst);
+    SDL_Rect grassRect = {
+        model->grass.x,
+        model->grass.y,
+        model->grass.width,
+        model->grass.height
+    };
+    SDL_RenderCopy(renderer, grassTexture, NULL, &grassRect);
+
 
     // Rita knappar
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); // röd triangel

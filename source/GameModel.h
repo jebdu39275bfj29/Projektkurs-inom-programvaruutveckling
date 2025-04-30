@@ -79,6 +79,7 @@ typedef struct {
     int hasBall;
     bool shouldMove;
     PlayerBehavior behavior;
+    bool isRunning;
 } Player;
 
 typedef struct {

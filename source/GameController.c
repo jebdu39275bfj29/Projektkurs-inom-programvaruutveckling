@@ -69,6 +69,14 @@ static bool handleEvents(GameModel* model)
                 model->triangleCoachTargetY = (float)my - PLAYER_SIZE / 2.0f;
             }
 
+            // Kvadrat-coachens musklick
+            if (!clickedButton && model->currentPage == PAGE_SQUARE) {
+                model->squareCoachManual = true;
+                model->squareCoachTargetX = (float)mx - PLAYER_SIZE / 2.0f;
+                model->squareCoachTargetY = (float)my - PLAYER_SIZE / 2.0f;
+            }
+
+
         }
     }
     return true;
@@ -494,6 +502,31 @@ void updateSquareLogic(GameModel* model) {
         model->squareBall.frame = (model->squareBall.frame + 1) % 7;
         model->squareBall.lastFrameTime = now;
     }
+
+
+        // Manuell styrning av squareCoach
+    if (model->squareCoachManual) {
+        float dx = model->squareCoachTargetX - model->squareCoach.x;
+        float dy = model->squareCoachTargetY - model->squareCoach.y;
+        float distance = sqrtf(dx * dx + dy * dy);
+
+        if (distance < 1.0f) {
+            model->squareCoachManual = false;
+            model->squareCoach.animationState = IDLE;
+            model->squareCoach.frame = 0;
+            model->squareCoach.lastFrameTime = SDL_GetTicks();
+        } else {
+            movePlayerTowards(&model->squareCoach,
+                              model->squareCoachTargetX,
+                              model->squareCoachTargetY,
+                              COACH_SPEED,
+                              model);
+        }
+    } else {
+        // Om man inte styr manuellt, se till att coachen står still
+        model->squareCoach.animationState = IDLE;
+    }
+
 
     // Uppdatera springande spelare
     /*float playerSpeed = 3.0f;  // långsammare än bollens 3.0f

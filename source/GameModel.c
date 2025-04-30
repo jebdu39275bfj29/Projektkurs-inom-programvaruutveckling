@@ -285,6 +285,21 @@ void initializeModel(struct GameModel* model, SDL_Texture* coachTexture, SDL_Tex
     }
 
 
+    model->squareCoach = (Player){
+        .x = WINDOW_WIDTH / 2,
+        .y = WINDOW_HEIGHT / 2 + 120,  
+        .angle = 0,
+        .state = IDLE,
+        .animationState = IDLE,
+        .frame = 0,
+        .lastFrameTime = SDL_GetTicks()
+    };
+
+    model->squareCoachManual = false;
+    model->squareCoachTargetX = model->squareCoach.x;
+    model->squareCoachTargetY = model->squareCoach.y;
+
+
 }
 
 

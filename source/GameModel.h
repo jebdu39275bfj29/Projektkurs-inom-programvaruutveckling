@@ -148,6 +148,11 @@ typedef struct GameModel {
     float squareBallTargetX;
     float squareBallTargetY;
 
+    Player squareCoach;
+    bool squareCoachManual;
+    float squareCoachTargetX;
+    float squareCoachTargetY;
+
 } GameModel;
 
 extern Player squarePlayers[SQUARE_PLAYER_COUNT];

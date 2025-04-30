@@ -809,6 +809,126 @@ void renderSquareScene(SDL_Renderer* renderer, struct GameModel* model, SDL_Text
 
     SDL_RenderCopy(renderer, model->squareBall.texture, &src, &dst);
 
+
+        // HÖRSELCIRKEL runt kvadrat-coach
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(renderer, 144, 238, 144, 60);  // ljusgrön, transparens
+
+    int circleCx = (int)(model->squareCoach.x + PLAYER_SIZE / 2);
+    int circleCy = (int)(model->squareCoach.y + PLAYER_SIZE / 2);
+    int r = (int)model->coachDetectionRadius;
+
+    for (int dy = -r; dy <= r; dy++) {
+        int dxMax = (int)sqrtf((float)(r * r - dy * dy));
+        for (int dx = -dxMax; dx <= dxMax; dx++) {
+            SDL_RenderDrawPoint(renderer, circleCx + dx, circleCy + dy);
+        }
+    }
+
+    // SYNSSEKTOR
+    const float  fovTotalRad  = 100.0f * M_PI / 180.0f;  // 100 grader
+    const float  fovHalfRad   = 0.5f * fovTotalRad;
+    const float  visionLength = model->coachDetectionRadius * 4.0f;
+
+    float forwardRad = model->squareCoach.angle * M_PI / 180.0f;
+    int apexX = (int)(model->squareCoach.x + PLAYER_SIZE / 2);
+    int apexY = (int)(model->squareCoach.y + PLAYER_SIZE / 2);
+
+    float maxAlpha = 60.0f;
+    for (int rStep = 0; rStep < (int)visionLength; ++rStep) {
+        float currLen = (float)rStep;
+        float nextLen = currLen + 1.0f;
+
+        float t = currLen / visionLength;
+        float fade = sqrtf(t);
+        Uint8 alpha = (Uint8)(maxAlpha * fade);
+
+        SDL_SetRenderDrawColor(renderer, 220, 230, 170, alpha);  // ljusgul
+
+        for (float a = -fovHalfRad; a <= fovHalfRad; a += (M_PI / 180.0f)) {
+            float ca = cosf(forwardRad + a);
+            float sa = sinf(forwardRad + a);
+
+            int x1 = (int)(apexX + ca * currLen);
+            int y1 = (int)(apexY + sa * currLen);
+            int x2 = (int)(apexX + ca * nextLen);
+            int y2 = (int)(apexY + sa * nextLen);
+
+            SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
+        }
+    }
+
+    // AVSTÅNDSTEXT från squareCoach till varje square-spelare
+    float coachCenterX = model->squareCoach.x + PLAYER_SIZE / 2.0f;
+    float coachCenterY = model->squareCoach.y + PLAYER_SIZE / 2.0f;
+
+    float pxToMeter = 5.0f / model->coachDetectionRadius;
+
+    for (int i = 0; i < SQUARE_PLAYER_COUNT; i++) {
+        float playerCenterX = squarePlayers[i].x + PLAYER_SIZE / 2.0f;
+        float playerCenterY = squarePlayers[i].y + PLAYER_SIZE / 2.0f;
+
+        float dx = playerCenterX - coachCenterX;
+        float dy = playerCenterY - coachCenterY;
+        float distPixels = sqrtf(dx * dx + dy * dy);
+        float distMeters = distPixels * pxToMeter;
+
+        char buffer[64];
+        snprintf(buffer, sizeof(buffer), "S%d: %.2f m", i, distMeters);
+
+        SDL_Color white = {255, 255, 255, 255};
+        SDL_Surface* textSurface = TTF_RenderText_Blended(font, buffer, white);
+        if (textSurface) {
+            SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+            if (textTexture) {
+                SDL_Rect textRect;
+                textRect.x = 10;
+                textRect.y = 10 + i * 20;
+                textRect.w = textSurface->w;
+                textRect.h = textSurface->h;
+
+                SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
+                SDL_DestroyTexture(textTexture);
+            }
+            SDL_FreeSurface(textSurface);
+        }
+    }
+
+
+    // RITA KVADRAT-COACH (med coach-textur)
+    if (model->coachTexture) {
+        const int frameHeights = 89;
+        const int animationFrameWidths[ANIMATION_COUNT] = { 48, 50, 40, 67, 50, 44 };
+        int rowIndex = 2;  // T.ex. "RUN"–animationen
+
+        int frameW = animationFrameWidths[model->squareCoach.animationState];
+        int frameH = frameHeights;
+
+        SDL_Rect src = {
+            model->squareCoach.frame * frameW,
+            rowIndex * frameH,
+            frameW,
+            frameH
+        };
+
+        SDL_Rect dst = {
+            (int)model->squareCoach.x,
+            (int)model->squareCoach.y,
+            PLAYER_SIZE,
+            PLAYER_SIZE
+        };
+
+        SDL_Point center = { PLAYER_SIZE / 2, PLAYER_SIZE / 2 };
+
+        SDL_RendererFlip flip = SDL_FLIP_NONE;
+        if (model->squareCoach.angle >= 90 && model->squareCoach.angle <= 270) {
+            flip = SDL_FLIP_HORIZONTAL;
+        }
+
+        SDL_RenderCopyEx(renderer, model->coachTexture, &src, &dst, 0.0, &center, flip);
+    }
+
+
     SDL_RenderPresent(renderer);
 }
 

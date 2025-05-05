@@ -19,7 +19,7 @@
 #define COACH_SPEED 4.5f
 #define M_PI 3.14159265358979323846
 #define PLAYER_COUNT_TRIANGLE 4
-#define SQUARE_PLAYER_COUNT 4
+#define SQUARE_PLAYER_COUNT 5
 
 
 typedef enum {
@@ -147,7 +147,9 @@ typedef struct GameModel {
     int squareCurrentTarget;  
     float squareBallTargetX;
     float squareBallTargetY;
-
+    
+    int squareChaserIndex; 
+    int squareLastPasserIndex; 
     Player squareCoach;
     bool squareCoachManual;
     float squareCoachTargetX;

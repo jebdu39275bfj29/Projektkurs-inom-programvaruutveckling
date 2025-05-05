@@ -16,4 +16,6 @@ void update_ball(Ball* ball, Player players[], GameModel* model);
 void update_players(Player players[]);
 void updateTriangleLogic(GameModel* model);
 void updateTriangleCoach(GameModel* model);
+void updateSquareLogic(struct GameModel* model);
+void updateSquareCoach(GameModel* model);
 #endif

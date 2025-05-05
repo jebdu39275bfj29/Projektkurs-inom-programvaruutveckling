@@ -16,64 +16,24 @@ void cleanupModel(struct GameModel* model) {
 
 void initSquarePlayers() {
     int gap = 400;
-
-    // Justera dessa värden för att flytta positionen
-    int shiftX = -40;  // flytta vänster
-    int shiftY = -50;   // flytta uppåt
-
-    // Center point of the square
+    int shiftX = 0;
+    int shiftY = -50;
     int centerX = WINDOW_WIDTH / 2 + shiftX;
     int centerY = WINDOW_HEIGHT / 2 + shiftY;
-
-    // Offset to spread players around the center
     int offset = gap / 2;
 
-    // Upper left
-    squarePlayers[0] = (Player){
-        .x = centerX - offset,
-        .y = centerY - offset,
-        .angle = 0,
-        .state = IDLE,
-        .animationState = IDLE,
-        .frame = 0,
-        .lastFrameTime = SDL_GetTicks(),
-        .targetX = 0,
-        .targetY = 0,
-        .isRunning = false
-    };
+    // P0: övre vänster
+    squarePlayers[0] = (Player){ centerX - offset - PLAYER_SIZE / 2, centerY - offset - PLAYER_SIZE / 2, 0, IDLE, IDLE, 0, SDL_GetTicks(), 0, 0, 0 };
+    // P1: nedre vänster
+    squarePlayers[1] = (Player){ centerX - offset - PLAYER_SIZE / 2, centerY + offset - PLAYER_SIZE / 2, 0, IDLE, IDLE, 0, SDL_GetTicks(), 0, 0, 0 };
+    // P2: övre höger
+    squarePlayers[2] = (Player){ centerX + offset - PLAYER_SIZE / 2, centerY - offset - PLAYER_SIZE / 2, 0, IDLE, IDLE, 0, SDL_GetTicks(), 0, 0, 0 };
+    // P3: nedre höger
+    squarePlayers[3] = (Player){ centerX + offset - PLAYER_SIZE / 2, centerY + offset - PLAYER_SIZE / 2, 0, IDLE, IDLE, 0, SDL_GetTicks(), 0, 0, 0 };
 
-    // Lower left
-    squarePlayers[1] = (Player){
-        .x = centerX - offset,
-        .y = centerY + offset,
-        .angle = 0,
-        .state = IDLE,
-        .animationState = IDLE,
-        .frame = 0,
-        .lastFrameTime = SDL_GetTicks(),
-        .targetX = 0,
-        .targetY = 0,
-        .isRunning = false
-    };
-
-    // Upper right
-    squarePlayers[2] = (Player){
-        .x = centerX + offset,
-        .y = centerY - offset,
-        .angle = 0,
-        .state = IDLE,
-        .animationState = IDLE,
-        .frame = 0,
-        .lastFrameTime = SDL_GetTicks(),
-        .targetX = 0,
-        .targetY = 0,
-        .isRunning = false
-    };
-
-    // Lower right
-    squarePlayers[3] = (Player){
-        .x = centerX + offset,
-        .y = centerY + offset,
+    squarePlayers[4] = (Player){
+        .x = squarePlayers[0].x,
+        .y = squarePlayers[0].y,
         .angle = 0,
         .state = IDLE,
         .animationState = IDLE,

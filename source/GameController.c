@@ -429,7 +429,7 @@ void updateTriangleCoach(GameModel* model) {
     float dy = model->triangleCoachTargetY - model->triangleCoach.y;
     float distance = sqrtf(dx * dx + dy * dy);
 
-    float speed = 2.0f;
+    float speed = 5.0f;
     if (distance > speed) {
         model->triangleCoach.x += speed * dx / distance;
         model->triangleCoach.y += speed * dy / distance;
@@ -456,7 +456,7 @@ void updateSquareCoach(GameModel* model) {
     float dy = model->squareCoachTargetY - model->squareCoach.y;
     float distance = sqrtf(dx * dx + dy * dy);
 
-    float speed = 4.0f;
+    float speed = 5.0f;
     if (distance > speed) {
         model->squareCoach.x += speed * dx / distance;
         model->squareCoach.y += speed * dy / distance;
@@ -486,7 +486,7 @@ void updateSquareCoach(GameModel* model) {
 }
 
 
-
+/*
 void updateSquareLogic(GameModel* model) {
     static int playerPosition[5] = {0, 1, 2, 3, 4};  // 5 spelare i rotation
     static int ballTargetIndex = 1;
@@ -554,6 +554,84 @@ void updateSquareLogic(GameModel* model) {
                 squarePlayers[i].isRunning = false;
                 squarePlayers[i].animationState = IDLE;
             }
+        }
+    }
+}
+*/
+
+
+void updateSquareLogic(GameModel* model) {
+    static const int targetCorners[4] = {1, 2, 3, 0}; // UR → BR → BL → UL
+    static int playerPositions[5] = {4, 0, 3, 2, 1};  // Medurs: UL, UR, BR, BL, och utanför
+    static int ballTargetIndex = 1;                   // Bollen går till hörn 1 (UR) först
+    static bool firstRun = true;
+
+    float dx = model->squareBallTargets[ballTargetIndex][0] - model->squareBallX;
+    float dy = model->squareBallTargets[ballTargetIndex][1] - model->squareBallY;
+    float dist = sqrtf(dx * dx + dy * dy);
+
+    // Initiera första löparen bara en gång
+    if (firstRun) {
+    for (int i = 0; i < SQUARE_PLAYER_COUNT; i++) {
+        squarePlayers[i].isRunning = false;
+        squarePlayers[i].targetX = squarePlayers[i].x;
+        squarePlayers[i].targetY = squarePlayers[i].y;
+    }
+
+    // ⬅️ Första löparen är playerPositions[0] = 4
+    int runnerId = playerPositions[0];
+    int targetCorner = model->squareBallTargetIndex; // ex: 1 = UR
+    squarePlayers[runnerId].targetX = model->squareBallTargets[targetCorner][0] - PLAYER_SIZE / 2;
+    squarePlayers[runnerId].targetY = model->squareBallTargets[targetCorner][1] - PLAYER_SIZE / 2;
+    squarePlayers[runnerId].isRunning = true;
+    squarePlayers[runnerId].animationState = RUN;
+    firstRun = false;
+}
+
+
+    // Flytta bollen
+    model->squareBallX += model->squareBallVelX;
+    model->squareBallY += model->squareBallVelY;
+
+    if (dist < 4.0f) {
+        // När bollen når hörnet: rotera spelarna
+        int last = playerPositions[4];
+        for (int i = 4; i > 0; --i) {
+            playerPositions[i] = playerPositions[i - 1];
+        }
+        playerPositions[0] = last;
+
+        // Nytt mål för bollen
+        ballTargetIndex = (ballTargetIndex + 1) % 4;
+
+        // Starta nästa löpare
+        int runnerId = playerPositions[0];
+        squarePlayers[runnerId].targetX = model->squareBallTargets[ballTargetIndex][0] - PLAYER_SIZE / 2;
+        squarePlayers[runnerId].targetY = model->squareBallTargets[ballTargetIndex][1] - PLAYER_SIZE / 2;
+        squarePlayers[runnerId].isRunning = true;
+        squarePlayers[runnerId].animationState = RUN;
+
+        // Snappa bollen till nuvarande hörn
+        int previousIndex = (ballTargetIndex + 3) % 4;
+        model->squareBallX = model->squareBallTargets[previousIndex][0];
+        model->squareBallY = model->squareBallTargets[previousIndex][1];
+
+        // Räkna ut ny riktning för bollen mot nästa hörn
+        int nextCorner = ballTargetIndex;
+        float ndx = model->squareBallTargets[nextCorner][0] - model->squareBallX;
+        float ndy = model->squareBallTargets[nextCorner][1] - model->squareBallY;
+
+        float len = sqrtf(ndx * ndx + ndy * ndy);
+        if (len > 0.1f) {
+            model->squareBallVelX = (ndx / len) * 6.0f;
+            model->squareBallVelY = (ndy / len) * 6.0f;
+        }
+    }
+
+    // Uppdatera spelarna
+    for (int i = 0; i < SQUARE_PLAYER_COUNT; i++) {
+        if (squarePlayers[i].isRunning) {
+            movePlayerTowards(&squarePlayers[i], squarePlayers[i].targetX, squarePlayers[i].targetY, MOVE_SPEED/4, model);
         }
     }
 }

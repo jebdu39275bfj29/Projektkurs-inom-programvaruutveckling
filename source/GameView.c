@@ -9,6 +9,11 @@
 // Variabel för font
 static TTF_Font* font = NULL;
 
+// --- Blinktimer för knappar ---
+static Uint32 lastBlinkTime = 0;
+static bool blinkOn = true;
+
+
 bool initializeTextSystem() {
     if (TTF_Init() < 0) {
         SDL_Log("TTF_Init Error: %s", TTF_GetError());
@@ -48,6 +53,13 @@ GameTextures loadAllTextures(SDL_Renderer* renderer) {
 void renderGame(SDL_Renderer* renderer, SDL_Texture* playerTexture, SDL_Texture* grassTexture, struct GameModel* model) {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
+
+    // Blinklogik: växla var 500ms
+    Uint32 currentTime = SDL_GetTicks();
+    if (currentTime - lastBlinkTime > 500) {
+        blinkOn = !blinkOn;
+        lastBlinkTime = currentTime;
+    }
 
     // Rita gräsplanen
     if (grassTexture) {
@@ -323,6 +335,22 @@ void renderGame(SDL_Renderer* renderer, SDL_Texture* playerTexture, SDL_Texture*
         // 100 pixlar = 5 meter => 1 px = 0.05 m
         float pxToMeter = 5.0f / model->coachDetectionRadius;
 
+
+        // Rubrik ovanför parametrarna
+        SDL_Color white1 = {255, 255, 255, 255};
+        SDL_Surface* headerSurface = TTF_RenderText_Blended(font, "Distances to coach:", white1);
+        SDL_Texture* headerTexture = SDL_CreateTextureFromSurface(renderer, headerSurface);
+        SDL_Rect headerRect = {
+            WINDOW_WIDTH - headerSurface->w - 50,
+            370,  // eller justera vid behov
+            headerSurface->w,
+            headerSurface->h
+        };
+        SDL_RenderCopy(renderer, headerTexture, NULL, &headerRect);
+        SDL_FreeSurface(headerSurface);
+        SDL_DestroyTexture(headerTexture);
+
+
         // Här lägger du texten rad för rad
         for (int i = 0; i < PLAYER_COUNT; i++) {
             // Spelarens mittpunkt
@@ -348,8 +376,8 @@ void renderGame(SDL_Renderer* renderer, SDL_Texture* playerTexture, SDL_Texture*
                 if (textTexture) {
                     // Bestäm en position för texten
                     SDL_Rect textRect;
-                    textRect.x = 10;              // 10 pixlar från vänster
-                    textRect.y = 10 + i * 20;     // 10 pixlar från toppen + 20 per spelare
+                    textRect.x = WINDOW_WIDTH - textSurface->w - 80; // 80 pixlar från högra kanten
+                    textRect.y = WINDOW_HEIGHT - ((PLAYER_COUNT - i) * 20) - 80;
                     textRect.w = textSurface->w;
                     textRect.h = textSurface->h;
 
@@ -398,7 +426,12 @@ void renderGame(SDL_Renderer* renderer, SDL_Texture* playerTexture, SDL_Texture*
 
     // Fyll rektangel med blå färg
     SDL_Rect backButton = {WINDOW_WIDTH - 120, 10, 40, 20};
-    SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255); // blå
+    if (blinkOn) {
+        SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255); // blå
+    } else {
+        SDL_SetRenderDrawColor(renderer, 0, 0, 100, 255); // mörkblå
+    }
+
     SDL_RenderFillRect(renderer, &backButton);
 
     // Vit kantlinje runt triangel och rektangel
@@ -411,6 +444,53 @@ void renderGame(SDL_Renderer* renderer, SDL_Texture* playerTexture, SDL_Texture*
     };
     SDL_RenderDrawLines(renderer, triangleOutline, 4);
     SDL_RenderDrawRect(renderer, &backButton);
+
+
+    SDL_Color white = {255, 255, 255, 255};
+
+    // TEXT
+    // Rad 1
+    SDL_Surface* row1 = TTF_RenderText_Blended(font, "Click a button above", white);
+    SDL_Texture* tex1 = SDL_CreateTextureFromSurface(renderer, row1);
+    SDL_Rect rect1 = {WINDOW_WIDTH - 190, 55, row1->w, row1->h}; // justera x och y vid behov
+    SDL_RenderCopy(renderer, tex1, NULL, &rect1);
+    SDL_FreeSurface(row1);
+    SDL_DestroyTexture(tex1);
+
+    // Rad 2
+    SDL_Surface* row2 = TTF_RenderText_Blended(font, "to switch drills ^^", white);
+    SDL_Texture* tex2 = SDL_CreateTextureFromSurface(renderer, row2);
+    SDL_Rect rect2 = {WINDOW_WIDTH - 180, 75, row2->w, row2->h};
+    SDL_RenderCopy(renderer, tex2, NULL, &rect2);
+    SDL_FreeSurface(row2);
+    SDL_DestroyTexture(tex2);
+
+    // Rad 1: "Coach is manual"
+    SDL_Surface* coachLine1 = TTF_RenderText_Blended(font, "Coach is manual", white);
+    SDL_Texture* texLine1 = SDL_CreateTextureFromSurface(renderer, coachLine1);
+    SDL_Rect rectLine1 = {
+        WINDOW_WIDTH - coachLine1->w - 55,
+        190,
+        coachLine1->w,
+        coachLine1->h
+    };
+    SDL_RenderCopy(renderer, texLine1, NULL, &rectLine1);
+    SDL_FreeSurface(coachLine1);
+    SDL_DestroyTexture(texLine1);
+
+    // Rad 2: "Click to move"
+    SDL_Surface* coachLine2 = TTF_RenderText_Blended(font, "Click anywhere to move", white);
+    SDL_Texture* texLine2 = SDL_CreateTextureFromSurface(renderer, coachLine2);
+    SDL_Rect rectLine2 = {
+        WINDOW_WIDTH - coachLine2->w - 30,
+        190 + rectLine1.h + 5,  // 5 px mellanrum
+        coachLine2->w,
+        coachLine2->h
+    };
+    SDL_RenderCopy(renderer, texLine2, NULL, &rectLine2);
+    SDL_FreeSurface(coachLine2);
+    SDL_DestroyTexture(texLine2);
+
     
     SDL_RenderPresent(renderer);
 }
@@ -420,6 +500,12 @@ void renderTriangleScene(SDL_Renderer* renderer, GameModel* model, SDL_Texture* 
 {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
+    // Blinklogik: växla var 500ms
+    Uint32 currentTime = SDL_GetTicks();
+    if (currentTime - lastBlinkTime > 500) {
+        blinkOn = !blinkOn;
+        lastBlinkTime = currentTime;
+    }
 
     SDL_Rect grassRect = {
         model->grass.x,
@@ -431,7 +517,12 @@ void renderTriangleScene(SDL_Renderer* renderer, GameModel* model, SDL_Texture* 
 
 
     // Rita knappar
-    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); // röd triangel
+    if (blinkOn) {
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); // röd
+    } else {
+        SDL_SetRenderDrawColor(renderer, 120, 0, 0, 255); // mörkröd
+    }
+    // röd triangel
     for (int y = 10; y <= 30; ++y) {
         for (int x = WINDOW_WIDTH - 60; x <= WINDOW_WIDTH - 30; ++x) {
             int dx1 = -15, dy1 = 20;
@@ -463,7 +554,7 @@ void renderTriangleScene(SDL_Renderer* renderer, GameModel* model, SDL_Texture* 
     SDL_RenderDrawLines(renderer, triangleOutline, 4);
     SDL_RenderDrawRect(renderer, &backButton);
 
-      // Fyll kvadrat med rosa färg
+    // Fyll kvadrat med rosa färg
     SDL_SetRenderDrawColor(renderer, 255, 105, 180, 255); // rosa (Hot Pink)
     SDL_Rect squareButton = {WINDOW_WIDTH - 180, 10, 30, 20};
     SDL_RenderFillRect(renderer, &squareButton);
@@ -563,7 +654,7 @@ void renderTriangleScene(SDL_Renderer* renderer, GameModel* model, SDL_Texture* 
     // TRIANGELCOACHENS SYN-SEKTOR
     const float  fovTotalRad  = 100.0f * M_PI / 180.0f;
     const float  fovHalfRad   = 0.5f * fovTotalRad;
-    const float  visionLength = model->coachDetectionRadius * 3.0f; //15m
+    const float  visionLength = model->coachDetectionRadius * 4.0f; //20m
 
     float forwardRad = model->triangleCoach.angle * M_PI / 180.0f;
     int   apexX      = (int)(model->triangleCoach.x + PLAYER_SIZE / 2);
@@ -642,6 +733,20 @@ void renderTriangleScene(SDL_Renderer* renderer, GameModel* model, SDL_Texture* 
 
     float pxToMeter = 5.0f / model->coachDetectionRadius;
 
+    // Rubrik ovanför parametrarna
+    SDL_Color white1 = {255, 255, 255, 255};
+    SDL_Surface* headerSurface = TTF_RenderText_Blended(font, "Distances to coach:", white1);
+    SDL_Texture* headerTexture = SDL_CreateTextureFromSurface(renderer, headerSurface);
+    SDL_Rect headerRect = {
+        WINDOW_WIDTH - headerSurface->w - 50,
+        370,  // eller justera vid behov
+        headerSurface->w,
+        headerSurface->h
+    };
+    SDL_RenderCopy(renderer, headerTexture, NULL, &headerRect);
+    SDL_FreeSurface(headerSurface);
+    SDL_DestroyTexture(headerTexture);
+
     for (int i = 0; i < 4; i++) {
         float playerCenterX = model->trianglePlayers[i].x + PLAYER_SIZE / 2.0f;
         float playerCenterY = model->trianglePlayers[i].y + PLAYER_SIZE / 2.0f;
@@ -660,8 +765,8 @@ void renderTriangleScene(SDL_Renderer* renderer, GameModel* model, SDL_Texture* 
             SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
             if (textTexture) {
                 SDL_Rect textRect;
-                textRect.x = 10;
-                textRect.y = 10 + i * 20;
+                textRect.x = WINDOW_WIDTH - textSurface->w - 80; // 80 pixlar från högra kanten
+                textRect.y = WINDOW_HEIGHT - ((PLAYER_COUNT - i) * 20) - 80;
                 textRect.w = textSurface->w;
                 textRect.h = textSurface->h;
 
@@ -671,6 +776,51 @@ void renderTriangleScene(SDL_Renderer* renderer, GameModel* model, SDL_Texture* 
             SDL_FreeSurface(textSurface);
         }
     }
+
+    SDL_Color white = {255, 255, 255, 255};
+
+    // TEXT
+    // Rad 1
+    SDL_Surface* row1 = TTF_RenderText_Blended(font, "Click a button above", white);
+    SDL_Texture* tex1 = SDL_CreateTextureFromSurface(renderer, row1);
+    SDL_Rect rect1 = {WINDOW_WIDTH - 190, 55, row1->w, row1->h}; // justera x och y vid behov
+    SDL_RenderCopy(renderer, tex1, NULL, &rect1);
+    SDL_FreeSurface(row1);
+    SDL_DestroyTexture(tex1);
+
+    // Rad 2
+    SDL_Surface* row2 = TTF_RenderText_Blended(font, "to switch drills ^^", white);
+    SDL_Texture* tex2 = SDL_CreateTextureFromSurface(renderer, row2);
+    SDL_Rect rect2 = {WINDOW_WIDTH - 180, 75, row2->w, row2->h};
+    SDL_RenderCopy(renderer, tex2, NULL, &rect2);
+    SDL_FreeSurface(row2);
+    SDL_DestroyTexture(tex2);
+
+    // Rad 1: "Coach is manual"
+    SDL_Surface* coachLine1 = TTF_RenderText_Blended(font, "Coach is manual", white);
+    SDL_Texture* texLine1 = SDL_CreateTextureFromSurface(renderer, coachLine1);
+    SDL_Rect rectLine1 = {
+        WINDOW_WIDTH - coachLine1->w - 55,
+        190,
+        coachLine1->w,
+        coachLine1->h
+    };
+    SDL_RenderCopy(renderer, texLine1, NULL, &rectLine1);
+    SDL_FreeSurface(coachLine1);
+    SDL_DestroyTexture(texLine1);
+
+    // Rad 2: "Click to move"
+    SDL_Surface* coachLine2 = TTF_RenderText_Blended(font, "Click anywhere to move", white);
+    SDL_Texture* texLine2 = SDL_CreateTextureFromSurface(renderer, coachLine2);
+    SDL_Rect rectLine2 = {
+        WINDOW_WIDTH - coachLine2->w - 30,
+        190 + rectLine1.h + 5,  // 5 px mellanrum
+        coachLine2->w,
+        coachLine2->h
+    };
+    SDL_RenderCopy(renderer, texLine2, NULL, &rectLine2);
+    SDL_FreeSurface(coachLine2);
+    SDL_DestroyTexture(texLine2);
 
 
     SDL_RenderPresent(renderer);
@@ -682,6 +832,12 @@ void renderSquareScene(SDL_Renderer* renderer, struct GameModel* model, SDL_Text
     // Bakgrundsfärg (mörkgrå)
     SDL_SetRenderDrawColor(renderer, 30, 30, 30, 255);
     SDL_RenderClear(renderer);
+    // Blinklogik: växla var 500ms
+    Uint32 currentTime = SDL_GetTicks();
+    if (currentTime - lastBlinkTime > 500) {
+        blinkOn = !blinkOn;
+        lastBlinkTime = currentTime;
+    }
 
     // Rita gräsplanen (samma som i renderGame)
     if (grassTexture) {
@@ -725,8 +881,13 @@ void renderSquareScene(SDL_Renderer* renderer, struct GameModel* model, SDL_Text
 
     // RITA KVADRATKNAPP (rosa)
     SDL_Rect squareButton = {WINDOW_WIDTH - 180, 10, 30, 20};
-    SDL_SetRenderDrawColor(renderer, 255, 105, 180, 255); // rosa (Hot Pink)
+    if (blinkOn) {
+        SDL_SetRenderDrawColor(renderer, 255, 105, 180, 255); // rosa
+    } else {
+        SDL_SetRenderDrawColor(renderer, 150, 60, 100, 255);  // mörkrosa
+    }
     SDL_RenderFillRect(renderer, &squareButton);
+
 
     // 🧾 VITA KANTLINJER
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
@@ -810,7 +971,7 @@ void renderSquareScene(SDL_Renderer* renderer, struct GameModel* model, SDL_Text
     SDL_RenderCopy(renderer, model->squareBall.texture, &src, &dst);
 
 
-        // HÖRSELCIRKEL runt kvadrat-coach
+    // HÖRSELCIRKEL runt kvadrat-coach
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
     SDL_SetRenderDrawColor(renderer, 144, 238, 144, 60);  // ljusgrön, transparens
 
@@ -864,6 +1025,20 @@ void renderSquareScene(SDL_Renderer* renderer, struct GameModel* model, SDL_Text
 
     float pxToMeter = 5.0f / model->coachDetectionRadius;
 
+    // Rubrik ovanför parametrarna
+    SDL_Color white1 = {255, 255, 255, 255};
+    SDL_Surface* headerSurface = TTF_RenderText_Blended(font, "Distances to coach:", white1);
+    SDL_Texture* headerTexture = SDL_CreateTextureFromSurface(renderer, headerSurface);
+    SDL_Rect headerRect = {
+        WINDOW_WIDTH - headerSurface->w - 50,
+        370,  // eller justera vid behov
+        headerSurface->w,
+        headerSurface->h
+    };
+    SDL_RenderCopy(renderer, headerTexture, NULL, &headerRect);
+    SDL_FreeSurface(headerSurface);
+    SDL_DestroyTexture(headerTexture);
+
     for (int i = 0; i < SQUARE_PLAYER_COUNT; i++) {
         float playerCenterX = squarePlayers[i].x + PLAYER_SIZE / 2.0f;
         float playerCenterY = squarePlayers[i].y + PLAYER_SIZE / 2.0f;
@@ -882,8 +1057,8 @@ void renderSquareScene(SDL_Renderer* renderer, struct GameModel* model, SDL_Text
             SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
             if (textTexture) {
                 SDL_Rect textRect;
-                textRect.x = 10;
-                textRect.y = 10 + i * 20;
+                textRect.x = WINDOW_WIDTH - textSurface->w - 80; // 80 pixlar från högra kanten
+                textRect.y = WINDOW_HEIGHT - ((PLAYER_COUNT - i) * 20) - 80;
                 textRect.w = textSurface->w;
                 textRect.h = textSurface->h;
 
@@ -927,6 +1102,51 @@ void renderSquareScene(SDL_Renderer* renderer, struct GameModel* model, SDL_Text
 
         SDL_RenderCopyEx(renderer, model->coachTexture, &src, &dst, 0.0, &center, flip);
     }
+
+    SDL_Color white = {255, 255, 255, 255};
+
+    // TEXT
+    // Rad 1
+    SDL_Surface* row1 = TTF_RenderText_Blended(font, "Click a button above", white);
+    SDL_Texture* tex1 = SDL_CreateTextureFromSurface(renderer, row1);
+    SDL_Rect rect1 = {WINDOW_WIDTH - 190, 55, row1->w, row1->h}; // justera x och y vid behov
+    SDL_RenderCopy(renderer, tex1, NULL, &rect1);
+    SDL_FreeSurface(row1);
+    SDL_DestroyTexture(tex1);
+
+    // Rad 2
+    SDL_Surface* row2 = TTF_RenderText_Blended(font, "to switch drills ^^", white);
+    SDL_Texture* tex2 = SDL_CreateTextureFromSurface(renderer, row2);
+    SDL_Rect rect2 = {WINDOW_WIDTH - 180, 75, row2->w, row2->h};
+    SDL_RenderCopy(renderer, tex2, NULL, &rect2);
+    SDL_FreeSurface(row2);
+    SDL_DestroyTexture(tex2);
+
+    // Rad 1: "Coach is manual"
+    SDL_Surface* coachLine1 = TTF_RenderText_Blended(font, "Coach is manual", white);
+    SDL_Texture* texLine1 = SDL_CreateTextureFromSurface(renderer, coachLine1);
+    SDL_Rect rectLine1 = {
+        WINDOW_WIDTH - coachLine1->w - 55,
+        190,
+        coachLine1->w,
+        coachLine1->h
+    };
+    SDL_RenderCopy(renderer, texLine1, NULL, &rectLine1);
+    SDL_FreeSurface(coachLine1);
+    SDL_DestroyTexture(texLine1);
+
+    // Rad 2: "Click to move"
+    SDL_Surface* coachLine2 = TTF_RenderText_Blended(font, "Click anywhere to move", white);
+    SDL_Texture* texLine2 = SDL_CreateTextureFromSurface(renderer, coachLine2);
+    SDL_Rect rectLine2 = {
+        WINDOW_WIDTH - coachLine2->w - 30,
+        190 + rectLine1.h + 5,  // 5 px mellanrum
+        coachLine2->w,
+        coachLine2->h
+    };
+    SDL_RenderCopy(renderer, texLine2, NULL, &rectLine2);
+    SDL_FreeSurface(coachLine2);
+    SDL_DestroyTexture(texLine2);
 
 
     SDL_RenderPresent(renderer);

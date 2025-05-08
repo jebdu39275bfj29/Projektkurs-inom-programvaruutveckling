@@ -8,7 +8,7 @@
 
 #define PLAYER_COUNT 6
 #define PLAYER_SIZE 64
-#define WINDOW_WIDTH 800
+#define WINDOW_WIDTH 1000
 #define WINDOW_HEIGHT 600
 #define FRAME_DELAY 100
 #define BALL_SPEED 5.0f

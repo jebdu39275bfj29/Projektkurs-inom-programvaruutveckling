@@ -22,15 +22,17 @@ void initSquarePlayers() {
     int centerY = WINDOW_HEIGHT / 2 + shiftY;
     int offset = gap / 2;
 
-    // P0: övre vänster
+    // Rätt medurs ordning:
+    // P0: övre vänster (UL)
     squarePlayers[0] = (Player){ centerX - offset - PLAYER_SIZE / 2, centerY - offset - PLAYER_SIZE / 2, 0, IDLE, IDLE, 0, SDL_GetTicks(), 0, 0, 0 };
-    // P1: nedre vänster
-    squarePlayers[1] = (Player){ centerX - offset - PLAYER_SIZE / 2, centerY + offset - PLAYER_SIZE / 2, 0, IDLE, IDLE, 0, SDL_GetTicks(), 0, 0, 0 };
-    // P2: övre höger
-    squarePlayers[2] = (Player){ centerX + offset - PLAYER_SIZE / 2, centerY - offset - PLAYER_SIZE / 2, 0, IDLE, IDLE, 0, SDL_GetTicks(), 0, 0, 0 };
-    // P3: nedre höger
-    squarePlayers[3] = (Player){ centerX + offset - PLAYER_SIZE / 2, centerY + offset - PLAYER_SIZE / 2, 0, IDLE, IDLE, 0, SDL_GetTicks(), 0, 0, 0 };
+    // P1: övre höger (UR)
+    squarePlayers[1] = (Player){ centerX + offset - PLAYER_SIZE / 2, centerY - offset - PLAYER_SIZE / 2, 0, IDLE, IDLE, 0, SDL_GetTicks(), 0, 0, 0 };
+    // P2: nedre höger (BR)
+    squarePlayers[2] = (Player){ centerX + offset - PLAYER_SIZE / 2, centerY + offset - PLAYER_SIZE / 2, 0, IDLE, IDLE, 0, SDL_GetTicks(), 0, 0, 0 };
+    // P3: nedre vänster (BL)
+    squarePlayers[3] = (Player){ centerX - offset - PLAYER_SIZE / 2, centerY + offset - PLAYER_SIZE / 2, 0, IDLE, IDLE, 0, SDL_GetTicks(), 0, 0, 0 };
 
+    // P4: startar på ULs plats, redo att rotera in
     squarePlayers[4] = (Player){
         .x = squarePlayers[0].x,
         .y = squarePlayers[0].y,
@@ -47,6 +49,7 @@ void initSquarePlayers() {
 
 
 
+
 void initializeModel(struct GameModel* model, SDL_Texture* coachTexture, SDL_Texture* ballTexture)
  {
     memset(model, 0, sizeof(GameModel));  // nollställer ALLT
@@ -58,6 +61,7 @@ void initializeModel(struct GameModel* model, SDL_Texture* coachTexture, SDL_Tex
     model->currentPage = PAGE_MAIN;
 
     initSquarePlayers();
+
 
     int offsetX = 10;
     int offsetY = 10;
@@ -216,18 +220,19 @@ void initializeModel(struct GameModel* model, SDL_Texture* coachTexture, SDL_Tex
     model->squareBallY = squarePlayers[0].y + PLAYER_SIZE / 2;
 
 
-    // Ny kvadratisk (medurs) ordning:
-    model->squareBallTargets[0][0] = squarePlayers[0].x + PLAYER_SIZE/2; // vänster övre
-    model->squareBallTargets[0][1] = squarePlayers[0].y + PLAYER_SIZE/2;
+    // Kvadratmål i medurs riktning
+    model->squareBallTargets[0][0] = squarePlayers[0].x + PLAYER_SIZE / 2; // UL
+    model->squareBallTargets[0][1] = squarePlayers[0].y + PLAYER_SIZE / 2;
 
-    model->squareBallTargets[1][0] = squarePlayers[2].x + PLAYER_SIZE/2; // höger övre
-    model->squareBallTargets[1][1] = squarePlayers[2].y + PLAYER_SIZE/2;
+    model->squareBallTargets[1][0] = squarePlayers[1].x + PLAYER_SIZE / 2; // UR
+    model->squareBallTargets[1][1] = squarePlayers[1].y + PLAYER_SIZE / 2;
 
-    model->squareBallTargets[2][0] = squarePlayers[3].x + PLAYER_SIZE/2; // höger nedre
-    model->squareBallTargets[2][1] = squarePlayers[3].y + PLAYER_SIZE/2;
+    model->squareBallTargets[2][0] = squarePlayers[2].x + PLAYER_SIZE / 2; // BR
+    model->squareBallTargets[2][1] = squarePlayers[2].y + PLAYER_SIZE / 2;
 
-    model->squareBallTargets[3][0] = squarePlayers[1].x + PLAYER_SIZE/2; // vänster nedre
-    model->squareBallTargets[3][1] = squarePlayers[1].y + PLAYER_SIZE/2;
+    model->squareBallTargets[3][0] = squarePlayers[3].x + PLAYER_SIZE / 2; // BL
+    model->squareBallTargets[3][1] = squarePlayers[3].y + PLAYER_SIZE / 2;
+
 
 
     // Starta på första hörnet
